@@ -50,9 +50,11 @@
 	{ \
 		_com_error error(RESULT); \
 		LPCTSTR errorMessage = error.ErrorMessage(); \
+		\
 		wchar_t buffer[1024] = { TEXT('\0') }; \
 		swprintf(buffer, ARRAYSIZE(buffer), TEXT("%s"), errorMessage); \
 		MessageBox(nullptr, buffer, TEXT("ERROR"), MB_OK); \
+		\
 		assert(false); \
 		exit(EXIT_FAILURE); \
 	}
@@ -62,8 +64,19 @@
 	{ \
 		_com_error error(RESULT); \
 		LPCTSTR errorMessage = error.ErrorMessage(); \
+		\
 		wchar_t errorBlubBuffer[512] = { TEXT('\0') }; \
 		wchar_t messageBuffer[1024] = { TEXT('\0') }; \
+		\
+		if (ERROR_BLOB && ERROR_BLOB->GetBufferPointer() && ERROR_BLOB->GetBufferSize() > 0) \
+		{ \
+			__pragma(warning(disable : 4996)) \
+			__pragma(warning(push)) \
+			mbstowcs(errorBlubBuffer, (const char*)ERROR_BLOB->GetBufferPointer(), ERROR_BLOB->GetBufferSize()); \
+			__pragma(warning(pop)) \
+			swprintf(messageBuffer, ARRAYSIZE(messageBuffer), TEXT("%s\n%s"), errorMessage, errorBlubBuffer); \
+		} \
+		else \
 		{ \
 			swprintf(messageBuffer, ARRAYSIZE(messageBuffer), TEXT("%s"), errorMessage); \
 		} \
@@ -71,5 +84,5 @@
 		MessageBox(nullptr, messageBuffer, TEXT("ERROR"), MB_OK); \
 		assert(false); \
 		exit(EXIT_FAILURE); \
-	}
+	}\
 
