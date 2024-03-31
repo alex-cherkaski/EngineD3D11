@@ -21,6 +21,8 @@ using namespace DirectX;
 
 #include "Includes/DXUT/dxerr.h"
 
+#include "Includes/DirectXTK/WICTextureLoader.h"
+
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
@@ -29,7 +31,7 @@ using namespace DirectX;
 
 #pragma comment(lib, "DXUT.lib")
 #pragma comment(lib, "DXUTOpt.lib")
-#pragma comment(lib, "comctl32.lib") // Needed for one of the functions in DXUT.
+#pragma comment(lib, "comctl32.lib") // Needed for one of the functions in DXUT. https://forums.codeguru.com/showthread.php?43971-error-LNK2001-unresolved-external-symbol-__imp__InitCommonControls-0
 
 #pragma comment(lib, "DirectXTK.lib")
 

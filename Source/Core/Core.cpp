@@ -313,7 +313,7 @@ void Renderer::CreateViewPort()
 	);
 }
 
-void Renderer::Present(const GPUMeshData& gpuModelData)
+void Renderer::Present(const GPUModelData& gpuModelData)
 {
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);
@@ -348,6 +348,20 @@ void Renderer::Present(const GPUMeshData& gpuModelData)
 		0									// Number of entries in the optional array of ID3D11ClassInstance.
 	);
 
+	// Set the pixel shader resource view to use to set the shader texture.
+	m_id3d11DeviceContext->PSSetShaderResources(
+		0,													// The index of the shader resource we want to set.
+		1,													// The number of shader resources in the share resource array.
+		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the array of shader resources.
+	);
+
+	// Set the pixel shader sampler state to sample the texture.
+	m_id3d11DeviceContext->PSSetSamplers(
+		0,												// The index of the shader sampler to set.
+		1,												// The number of sampler states in the sampler state array.
+		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
+	);
+
 	// Clear the back buffer through the render target view.
 	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
 	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
@@ -362,7 +376,7 @@ void Renderer::Present(const GPUMeshData& gpuModelData)
 	m_idxgiSwapChain->Present(0, 0);
 }
 
-void Renderer::CreateVertexBuffer(GPUMeshData& gpuModelData)
+void Renderer::CreateVertexBuffer(GPUModelData& gpuModelData)
 {
 	// Initialize the vertex buffer descriptor struct.
 	D3D11_BUFFER_DESC vertexBufferDecription = { 0 };
@@ -387,11 +401,11 @@ void Renderer::CreateVertexBuffer(GPUMeshData& gpuModelData)
 	gpuModelData.VertexBuffer = vertexBuffer;
 }
 
-void Renderer::CreateIndexBuffer(GPUMeshData& gpuModelData)
+void Renderer::CreateIndexBuffer(GPUModelData& gpuModelData)
 {
 }
 
-void Renderer::CreateVertexShader(GPUMeshData& gpuModelData)
+void Renderer::CreateVertexShader(GPUModelData& gpuModelData)
 {
 	// Shader compilation flags.
 #ifdef _DEBUG
@@ -406,7 +420,7 @@ void Renderer::CreateVertexShader(GPUMeshData& gpuModelData)
 		gpuModelData.VertexShaderPath.c_str(),		// Shader source path.
 		nullptr,									// Optional shader macros array.
 		nullptr,									// Optional D3D11Include pointer.
-		"main",										// Shader entry point.
+		"VS_Main",									// Shader entry point.
 		"vs_5_0",									// Vertex shader standards to compile against.
 		shaderFlags,								// Shader compilation flags.
 		0,											// Additional misc flags.
@@ -429,7 +443,7 @@ void Renderer::CreateVertexShader(GPUMeshData& gpuModelData)
 	ENGINE_ASSERT_HRESULT(createVertexShaderResult);
 }
 
-void Renderer::CreateInputLayout(GPUMeshData& gpuModelData)
+void Renderer::CreateInputLayout(GPUModelData& gpuModelData)
 {
 	// Array of vertex element descriptors.
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
@@ -441,9 +455,18 @@ void Renderer::CreateInputLayout(GPUMeshData& gpuModelData)
 			0,															// The offset of this element in the vertex buffer.
 			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
 			0															// Instance data step rate. 0 for vertex data.
+		},
+		{
+			"TEXCOORD",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,						// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			(UINT)sizeof(VertexData::m_position),						// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
 		}
 	};
-
+	
 	// Attempt to create the input layout.
 	const HRESULT createInputLayoutResult = m_id3d11Device->CreateInputLayout(
 		inputElements,									// Array of vertex shader input elements.
@@ -457,7 +480,7 @@ void Renderer::CreateInputLayout(GPUMeshData& gpuModelData)
 	ENGINE_ASSERT_HRESULT(createInputLayoutResult);
 }
 
-void Renderer::CreatePixelShader(GPUMeshData& gpuModelData)
+void Renderer::CreatePixelShader(GPUModelData& gpuModelData)
 {
 	// Shader compilation flags.
 #ifdef _DEBUG
@@ -472,7 +495,7 @@ void Renderer::CreatePixelShader(GPUMeshData& gpuModelData)
 		gpuModelData.PixelShaderPath.c_str(),		// Path to pixel shader source code.
 		nullptr,									// Optional array of D3D_SHADER_MACRO.
 		nullptr,									// Optional ID3DInclude pointer.
-		"main",									// Shader entry point.
+		"PS_Main",									// Shader entry point.
 		"ps_5_0",									// Shader standard to compile against.
 		shaderFlags,								// Shader compilation flags.
 		0,											// Additional misc compilation flags.
@@ -493,5 +516,63 @@ void Renderer::CreatePixelShader(GPUMeshData& gpuModelData)
 
 	// Error check pixel shader creation.
 	ENGINE_ASSERT_HRESULT(createPixelShaderResult);
+}
+
+void Renderer::CreateShaderResourceViewFromFile(GPUModelData& gpuModelData)
+{
+	// Attempt to create the texture.
+	const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFile(
+		m_id3d11Device.Get(),								// The device to use when creating the texture view.
+		m_id3d11DeviceContext.Get(),						// The device context to use when creating the texture view.
+		gpuModelData.TextureFilePath.c_str(),				// The path to the texture the view should be create for.
+		nullptr,											// Optional pointer to ID3D11Texture2D.
+		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the resulting shader resource view.
+	);
+
+	//Microsoft::WRL::ComPtr<ID3D11Resource> res;
+
+	//const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFileEx(
+	//	m_id3d11Device.Get(),
+	//	m_id3d11DeviceContext.Get(),
+	//	gpuModelData.TextureFilePath.c_str(),
+	//	0,
+	//	D3D11_USAGE_DEFAULT,
+	//	D3D11_BIND_SHADER_RESOURCE,
+	//	0,
+	//	0,
+	//	WIC_LOADER_FORCE_RGBA32 | WIC_LOADER_IGNORE_SRGB,
+	//	res.GetAddressOf(),
+	//	gpuModelData.ShaderResourceView.GetAddressOf()
+	//);
+
+	//Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
+	//const HRESULT hr = res.As(&tex);
+
+	//D3D11_TEXTURE2D_DESC desc;
+	//tex->GetDesc(&desc);
+
+	// Error check shader resource view creation.
+	ENGINE_ASSERT_HRESULT(createWICTextureFromFileResult);
+}
+
+void Renderer::CreateSamplerState(GPUModelData& gpuModelData)
+{
+	// Initialize the sampler descriptor struct.
+	D3D11_SAMPLER_DESC samplerDescriptor = { };
+	samplerDescriptor.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;  // Resolve U texture coordinates outside of the 0-1 range by tiling.
+	samplerDescriptor.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;  // Resolve V texture coordinates outside of the 0-1 range by tiling.
+	samplerDescriptor.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;  // Resolve W texture coordinates outside of the 0-1 range by tiling.
+	samplerDescriptor.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;	  // Do not compare the sampled data to the previously sampled data.
+	samplerDescriptor.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;			  // How to filter when sampling the texture. Use Lerp for all three.
+	samplerDescriptor.MaxLOD = D3D11_FLOAT32_MAX;										  // The minimum LOD level. 0 is the most detailed.
+
+	// Attempt to create the sampler state.
+	const HRESULT createSamplerStateResult = m_id3d11Device->CreateSamplerState(
+		&samplerDescriptor,								// The sampler state descriptor struct.
+		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the resulting sampler state interface.
+	);
+
+	// Error check sampler state creation.
+	ENGINE_ASSERT_HRESULT(createSamplerStateResult);
 }
 

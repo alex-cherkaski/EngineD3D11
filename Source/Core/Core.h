@@ -4,7 +4,7 @@
 #include "Macros.h"
 
 struct VertexData;
-struct GPUMeshData;
+struct GPUModelData;
 
 class Window final
 {
@@ -72,15 +72,17 @@ private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
 	void CreateViewPort();
-	void Present(const GPUMeshData& gpuModelData);
+	void Present(const GPUModelData& gpuModelData);
 
 public:
-	void CreateVertexBuffer(GPUMeshData& gpuModelData);
-	void CreateIndexBuffer(GPUMeshData& gpuModelData);
-	void CreateVertexShader(GPUMeshData& gpuModelData);
-	void CreateInputLayout(GPUMeshData& gpuModelData);
+	void CreateVertexBuffer(GPUModelData& gpuModelData);
+	void CreateIndexBuffer(GPUModelData& gpuModelData);
+	void CreateVertexShader(GPUModelData& gpuModelData);
+	void CreateInputLayout(GPUModelData& gpuModelData);
 
-	void CreatePixelShader(GPUMeshData& gpuModelData);
+	void CreatePixelShader(GPUModelData& gpuModelData);
+	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData);
+	void CreateSamplerState(GPUModelData& gpuModelData);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_id3d11Device = nullptr;
@@ -89,6 +91,8 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_id3d11RenderTargetView = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_backBufferTexture = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView = nullptr;
 
 	D3D_DRIVER_TYPE m_driverType = D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_NULL;
 };

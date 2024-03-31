@@ -51,4 +51,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Source\Shaders\FillColorShader.fx" />
+    <FxCompile Include="Source\Shaders\SingleTextureShader.fx" />
+  </ItemGroup>
 </Project>

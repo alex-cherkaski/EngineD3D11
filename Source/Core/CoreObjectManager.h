@@ -5,7 +5,7 @@
 
 struct CoreObject final
 {
-	GPUMeshData gpuMeshData;
+	GPUModelData gpuMeshData;
 };
 
 class CoreObjectManager final
