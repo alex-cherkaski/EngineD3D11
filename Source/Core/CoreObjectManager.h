@@ -3,9 +3,13 @@
 #include "CoreStructs.h"
 #include "Macros.h"
 
-struct CoreObject final
+class CoreObject final
 {
-	GPUModelData gpuMeshData;
+public:
+	CoreObject() = default;
+	CoreObject(GUID guid) : m_gpuMeshDataGUID(guid) { }
+public:
+	GUID m_gpuMeshDataGUID = { 0 };
 };
 
 class CoreObjectManager final

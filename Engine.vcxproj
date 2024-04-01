@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Core.cpp" />
+    <ClCompile Include="Source\Core\CoreGPUDataManager.cpp" />
     <ClCompile Include="Source\Core\CoreObjectManager.cpp" />
     <ClCompile Include="Source\Logger\Logger.cpp" />
     <ClCompile Include="Source\PCH.cpp">
@@ -156,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Core.h" />
+    <ClInclude Include="Source\Core\CoreGPUDataManager.h" />
     <ClInclude Include="Source\Core\CoreObjectManager.h" />
     <ClInclude Include="Source\Core\CoreStructs.h" />
     <ClInclude Include="Source\Logger\Logger.h" />

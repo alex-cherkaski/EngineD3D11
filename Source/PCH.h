@@ -3,11 +3,14 @@
 #include <Windows.h>
 #include <wrl.h>	// ComPtr
 #include <comdef.h> // COM error reporting.
+#include <rpcdce.h> // For UUID generation.
+#include <rpcnterr.h> // For UUID error check.
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -34,4 +37,6 @@ using namespace DirectX;
 #pragma comment(lib, "comctl32.lib") // Needed for one of the functions in DXUT. https://forums.codeguru.com/showthread.php?43971-error-LNK2001-unresolved-external-symbol-__imp__InitCommonControls-0
 
 #pragma comment(lib, "DirectXTK.lib")
+
+#pragma comment(lib, "Rpcrt4.lib") // For UUID generation.
 

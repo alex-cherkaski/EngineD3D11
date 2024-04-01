@@ -2,6 +2,7 @@
 #include "Core.h"
 #include "Logger/Logger.h"
 #include "CoreObjectManager.h"
+#include "CoreGPUDataManager.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -179,11 +180,13 @@ void Renderer::Initialize()
 
 void Renderer::Render()
 {
-	const CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceRead();
+	static const CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceRead();
+	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
 
 	for (const CoreObject& coreObject : coreObjectManager.GetCoreObjectsRead())
 	{
-		Present(coreObject.gpuMeshData);
+		const GPUModelData& modelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.m_gpuMeshDataGUID);
+		Present(modelData);
 	}
 }
 

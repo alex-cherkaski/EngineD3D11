@@ -1,18 +1,22 @@
 #include "PCH.h"
 #include "CoreObjectManager.h"
 #include "Core.h"
+#include "CoreGPUDataManager.h"
 
 void CoreObjectManager::Initialize()
 {
-	CoreObject coreObject;
+	// Generate a model data struct to fill with all the GPU relevant handles.
+	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
+	CoreObject coreObject(gpuDataManager.GenerateGUID());
+	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.m_gpuMeshDataGUID);
 
 	// Set the shader of the core object.
-	coreObject.gpuMeshData.VertexShaderPath = L"./Source/Shaders/SingleTextureShader.fx";
-	coreObject.gpuMeshData.PixelShaderPath = L"./Source/Shaders/SingleTextureShader.fx";
-	coreObject.gpuMeshData.TextureFilePath = L"./Resources/Images/PNG_transparency_demonstration_1.png";
+	modelData.VertexShaderPath = L"./Source/Shaders/SingleTextureShader.fx";
+	modelData.PixelShaderPath = L"./Source/Shaders/SingleTextureShader.fx";
+	modelData.TextureFilePath = L"./Resources/Images/PNG_transparency_demonstration_1.png";
 
 	// Set the vertex data of the core object
-	coreObject.gpuMeshData.Vertices = {
+	modelData.Vertices = {
 		{ XMFLOAT3 (0.5f,  0.5f, 0.5f), XMFLOAT2(1.0f, 1.0f) },
 		{ XMFLOAT3( 0.5f, -0.5f, 0.5f), XMFLOAT2(1.0f, 0.0f) },
 		{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT2(0.0f, 0.0f) },
@@ -25,17 +29,17 @@ void CoreObjectManager::Initialize()
 	Renderer& renderer = Renderer::GetInstanceWrite();
 
 	// Create the vertex relevant GPU data.
-	renderer.CreateVertexBuffer(coreObject.gpuMeshData);
-	renderer.CreateVertexShader(coreObject.gpuMeshData);
-	renderer.CreateInputLayout(coreObject.gpuMeshData);
+	renderer.CreateVertexBuffer(modelData);
+	renderer.CreateVertexShader(modelData);
+	renderer.CreateInputLayout(modelData);
 
 	// Create the pixel relevant GPU data.
-	renderer.CreatePixelShader(coreObject.gpuMeshData);
-	renderer.CreateShaderResourceViewFromFile(coreObject.gpuMeshData);
-	renderer.CreateSamplerState(coreObject.gpuMeshData);
+	renderer.CreatePixelShader(modelData);
+	renderer.CreateShaderResourceViewFromFile(modelData);
+	renderer.CreateSamplerState(modelData);
 
 	// Set the output merger stage topology settings.
-	coreObject.gpuMeshData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	m_coreObjects.push_back(coreObject);
 }
