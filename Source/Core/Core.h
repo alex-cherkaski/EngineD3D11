@@ -3,6 +3,7 @@
 #include "CoreStructs.h"
 #include "Macros.h"
 
+class CoreObject;
 struct VertexData;
 struct GPUModelData;
 
@@ -72,7 +73,7 @@ private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
 	void CreateViewPort();
-	void Present(const GPUModelData& gpuModelData);
+	void Present(CoreObject& coreObject);
 
 public:
 	void CreateVertexBuffer(GPUModelData& gpuModelData);
@@ -84,7 +85,22 @@ public:
 	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData);
 	void CreateSamplerState(GPUModelData& gpuModelData);
 
+	void CreateConstantBuffer(GPUModelData& gpuModelData);
+	void CreateBlendState(GPUModelData& gpuModelData);
+
+public:
+	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
+
+public:
+	void UpdateViewMatrix();
+	void UpdateProjectionMatrix();
+	void UpdateViewProjectionMatrix();
+
 private:
+	XMMATRIX m_viewMatrix = XMMatrixIdentity();
+	XMMATRIX m_projectionMatrix = XMMatrixIdentity();
+	XMMATRIX m_viewProjectionMatrix = XMMatrixIdentity();
+
 	Microsoft::WRL::ComPtr<ID3D11Device> m_id3d11Device = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_id3d11DeviceContext = nullptr;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> m_idxgiSwapChain = nullptr;

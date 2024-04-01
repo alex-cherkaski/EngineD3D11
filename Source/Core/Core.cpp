@@ -1,8 +1,9 @@
 #include "PCH.h"
 #include "Core.h"
-#include "Logger/Logger.h"
+#include "CoreObject.h"
 #include "CoreObjectManager.h"
 #include "CoreGPUDataManager.h"
+#include "Logger/Logger.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -175,19 +176,29 @@ void Renderer::Initialize()
 	CreateRenderTargetView();
 	CreateViewPort();
 
+	UpdateViewMatrix();
+	UpdateProjectionMatrix();
+	UpdateViewProjectionMatrix();
+
 	Logger::GetInstanceWrite().Log(Logger::Message, "Successfully initialized renderer.");
 }
 
 void Renderer::Render()
 {
-	static const CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceRead();
+	static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
 	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
 
-	for (const CoreObject& coreObject : coreObjectManager.GetCoreObjectsRead())
+	// Clear the back buffer through the render target view.
+	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
+	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
+
+	for (CoreObject& coreObject : coreObjectManager.GetCoreObjectsWrite())
 	{
-		const GPUModelData& modelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.m_gpuMeshDataGUID);
-		Present(modelData);
+		Present(coreObject);
 	}
+
+	// Present the contents of the back buffer to the screen.
+	m_idxgiSwapChain->Present(0, 0);
 }
 
 void Renderer::Shutdown()
@@ -300,24 +311,27 @@ void Renderer::CreateViewPort()
 {
 	const Window& window = Window::GetInstanceRead();
 
-	// Create the view port description struct.
+	// Create the viewport description struct.
 	D3D11_VIEWPORT viewPortDescription = { 0 };
 	viewPortDescription.Width = (FLOAT)window.GetClientWidth();
 	viewPortDescription.Height = (FLOAT)window.GetClientHeight();
-	viewPortDescription.TopLeftX = 0;
-	viewPortDescription.TopLeftY = 0;
-	viewPortDescription.MinDepth = 1.0f;
+	viewPortDescription.TopLeftX = 0.0f;
+	viewPortDescription.TopLeftY = 0.0f;
+	viewPortDescription.MinDepth = 0.0f;
 	viewPortDescription.MaxDepth = 1.0f;
 
 	// Set the window viewport.
 	m_id3d11DeviceContext->RSSetViewports(
-		1,
-		&viewPortDescription
+		1,						// The number of view ports to set.
+		&viewPortDescription	// Pointer to the array of viewport descriptors.
 	);
 }
 
-void Renderer::Present(const GPUModelData& gpuModelData)
+void Renderer::Present(CoreObject& coreObject)
 {
+	CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	GPUModelData gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
+
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);
 	const UINT offset = 0;
@@ -365,9 +379,32 @@ void Renderer::Present(const GPUModelData& gpuModelData)
 		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
 	);
 
-	// Clear the back buffer through the render target view.
-	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
-	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
+	//// Clear the back buffer through the render target view.
+	//constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
+	//m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
+
+	//coreObject.SetPosition({ 1350.0f, 1000.0f });
+	//coreObject.SetScale({ 0.25f, 0.25f });
+	const XMMATRIX mvp = XMMatrixMultiplyTranspose(coreObject.GetWorldMatrix(), m_viewProjectionMatrix);
+
+	// Update the constant buffer with the mvp matrix.
+	m_id3d11DeviceContext->UpdateSubresource(
+		gpuModelData.ConstantBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,										// Index of the subresource we want to update.
+		nullptr,								// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&mvp,									// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),					// The size of one row of the source data.
+		0										// The size of the depth slice of the source data.
+	);
+
+	ID3D11Resource* colorTex;
+	gpuModelData.ShaderResourceView->GetResource(&colorTex);
+	D3D11_TEXTURE2D_DESC colorTexDesc;
+	((ID3D11Texture2D*)colorTex)->GetDesc(&colorTexDesc);
+	colorTex->Release();
+
+	// Set the constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, gpuModelData.ConstantBuffer.GetAddressOf());
 
 	// Draw the model.
 	m_id3d11DeviceContext->Draw(
@@ -376,7 +413,7 @@ void Renderer::Present(const GPUModelData& gpuModelData)
 	);
 
 	// Present the contents of the back buffer to the screen.
-	m_idxgiSwapChain->Present(0, 0);
+	//m_idxgiSwapChain->Present(0, 0);
 }
 
 void Renderer::CreateVertexBuffer(GPUModelData& gpuModelData)
@@ -577,5 +614,81 @@ void Renderer::CreateSamplerState(GPUModelData& gpuModelData)
 
 	// Error check sampler state creation.
 	ENGINE_ASSERT_HRESULT(createSamplerStateResult);
+}
+
+void Renderer::CreateConstantBuffer(GPUModelData& gpuModelData)
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+	
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,					// Pointer to the buffer descriptor struct.
+		nullptr,									// Pointer to optional initial data struct.
+		gpuModelData.ConstantBuffer.GetAddressOf()	// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateBlendState(GPUModelData& gpuModelData)
+{
+	// Initialize blend state descriptor struct.
+	D3D11_BLEND_DESC blendDescriptor = { 0 };
+	blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
+	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
+	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
+	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
+	blendDescriptor.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;		// How to combine the source and destination alpha values.
+	blendDescriptor.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the pixel shader alpha value.
+	blendDescriptor.RenderTarget[0].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the current render target alpha value.
+	blendDescriptor.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;	// Which of RGBA to write the blend to. 
+
+	// Attempt to create blend state.
+	const HRESULT createBlendStateResult = m_id3d11Device->CreateBlendState(
+		&blendDescriptor,							// Pointer to the blend state descriptor struct.
+		gpuModelData.BlendState.GetAddressOf()		// Pointer to the resulting blend state interface.
+	);
+
+	// Error check blend state creation.
+	ENGINE_ASSERT_HRESULT(createBlendStateResult);
+
+	// Blend factor to modulate the values of pixel shader, render target, or both.
+	constexpr float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// Set the blend state of the output merger stage.
+	m_id3d11DeviceContext->OMSetBlendState(
+		gpuModelData.BlendState.Get(),		// Pointer to the blend state interface to set.
+		blendFactor,						// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
+		0xffffffff							// Which samples get updated in the currently active render target.
+	);
+}
+
+void Renderer::UpdateViewMatrix()
+{
+	m_viewMatrix = XMMatrixIdentity();
+}
+
+void Renderer::UpdateProjectionMatrix()
+{
+	static const Window& window = Window::GetInstanceRead();
+
+	// Construct the window dimensions based on window's client dimensions.
+	m_projectionMatrix = XMMatrixOrthographicOffCenterLH(
+		0.0f,									// Left end of the view volume.
+		(float)window.GetClientWidth(),			// Right end of the view volume.
+		0.0f,									// Bottom end of the view volume.
+		(float)window.GetClientHeight(),		// Top end of the view volume.
+		0.1f,									// Distance of the near plane from the camera.
+		100.0f									// Distance of the far plane from the camera.
+	);
+}
+
+void Renderer::UpdateViewProjectionMatrix()
+{
+	m_viewProjectionMatrix = XMMatrixMultiply(m_viewMatrix, m_projectionMatrix);
 }
 

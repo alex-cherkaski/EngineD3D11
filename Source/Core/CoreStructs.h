@@ -27,5 +27,8 @@ struct GPUModelData
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> SamplerState = nullptr;
 
+	Microsoft::WRL::ComPtr<ID3D11BlendState> BlendState = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBuffer = nullptr;
+
 	D3D11_PRIMITIVE_TOPOLOGY PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 };

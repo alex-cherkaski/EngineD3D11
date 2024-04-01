@@ -9,14 +9,6 @@
 	CLASS(CLASS&&) = delete; \
 	CLASS& operator=(CLASS&&) = delete; \
 
-#define DEFAULT_COPY(CLASS) \
-	CLASS(const CLASS&) = default; \
-	CLASS& operator=(const CLASS&) = default
-
-#define DEFAULT_MOVE(CLASS) \
-	CLASS(CLASS&& other) noexcept = default; \
-	CLASS& operator=(CLASS&& other) noexcept = default
-
 #define SINGLETON(CLASS) \
 	NO_COPY(CLASS); \
 	NO_MOVE(CLASS); \
@@ -85,4 +77,17 @@
 		assert(false); \
 		exit(EXIT_FAILURE); \
 	}\
+
+#define GUID_IS_ZERO(MEMBER) \
+	(MEMBER.Data1 == 0 \
+	&& MEMBER.Data2 == 0 \
+	&& MEMBER.Data3 == 0 \
+	&& MEMBER.Data4[0] == 0 \
+	&& MEMBER.Data4[1] == 0 \
+	&& MEMBER.Data4[2] == 0 \
+	&& MEMBER.Data4[3] == 0 \
+	&& MEMBER.Data4[4] == 0 \
+	&& MEMBER.Data4[5] == 0 \
+	&& MEMBER.Data4[6] == 0 \
+	&& MEMBER.Data4[7] == 0)
 
