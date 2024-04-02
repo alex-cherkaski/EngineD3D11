@@ -12,6 +12,8 @@ struct GPUModelData
 	std::wstring VertexShaderPath;
 	std::wstring PixelShaderPath;
 	std::wstring TextureFilePath;
+	
+	std::wstring Message;
 
 	std::vector<VertexData> Vertices;
 	std::vector<UINT> Indices;

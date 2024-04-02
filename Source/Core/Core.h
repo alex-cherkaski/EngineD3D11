@@ -75,17 +75,19 @@ private:
 	void CreateViewPort();
 
 	void Clear();
-	void Draw(CoreObject& coreObject);
+	void Draw(const CoreObject& coreObject);
+	void DrawString(const CoreObject& coreObject);
 	void Present();
 
 public:
-	void CreateVertexBuffer(GPUModelData& gpuModelData);
+	void CreateStaticVertexBuffer(GPUModelData& gpuModelData);
+	void CreateTextVertexBuffer(GPUModelData& gpuModelData);
 	void CreateIndexBuffer(GPUModelData& gpuModelData);
 	void CreateVertexShader(GPUModelData& gpuModelData);
 	void CreateInputLayout(GPUModelData& gpuModelData);
 
 	void CreatePixelShader(GPUModelData& gpuModelData);
-	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData);
+	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData, bool isDDS = false);
 	void CreateSamplerState(GPUModelData& gpuModelData);
 
 	void CreateConstantBuffer(GPUModelData& gpuModelData);

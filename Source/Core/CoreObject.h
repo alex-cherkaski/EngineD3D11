@@ -12,7 +12,7 @@ public:
 	const GUID& GetGPUDataGUID() const { return m_gpuDataGUID; }
 	void SetGPUDataGUID(const GUID& gpuDataGUID);
 
-	XMMATRIX GetWorldMatrix();
+	XMMATRIX GetWorldMatrix() const;
 	void SetPosition(const XMFLOAT2& position) { m_position = position; }
 	void SetRotation(float rotation) { m_rotation = rotation; }
 	void SetScale(const XMFLOAT2& scale) { m_scale = scale; }
