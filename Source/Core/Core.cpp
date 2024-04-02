@@ -185,20 +185,15 @@ void Renderer::Initialize()
 
 void Renderer::Render()
 {
+	Clear();
+
 	static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
-	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
-
-	// Clear the back buffer through the render target view.
-	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
-	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
-
 	for (CoreObject& coreObject : coreObjectManager.GetCoreObjectsWrite())
 	{
-		Present(coreObject);
+		Draw(coreObject);
 	}
 
-	// Present the contents of the back buffer to the screen.
-	m_idxgiSwapChain->Present(0, 0);
+	Present();
 }
 
 void Renderer::Shutdown()
@@ -327,10 +322,17 @@ void Renderer::CreateViewPort()
 	);
 }
 
-void Renderer::Present(CoreObject& coreObject)
+void Renderer::Clear()
+{
+	// Clear the back buffer through the render target view.
+	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
+	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
+}
+
+void Renderer::Draw(CoreObject& coreObject)
 {
 	CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
-	GPUModelData gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
+	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
 
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);
@@ -379,12 +381,6 @@ void Renderer::Present(CoreObject& coreObject)
 		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
 	);
 
-	//// Clear the back buffer through the render target view.
-	//constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
-	//m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
-
-	//coreObject.SetPosition({ 1350.0f, 1000.0f });
-	//coreObject.SetScale({ 0.25f, 0.25f });
 	const XMMATRIX mvp = XMMatrixMultiplyTranspose(coreObject.GetWorldMatrix(), m_viewProjectionMatrix);
 
 	// Update the constant buffer with the mvp matrix.
@@ -397,12 +393,6 @@ void Renderer::Present(CoreObject& coreObject)
 		0										// The size of the depth slice of the source data.
 	);
 
-	ID3D11Resource* colorTex;
-	gpuModelData.ShaderResourceView->GetResource(&colorTex);
-	D3D11_TEXTURE2D_DESC colorTexDesc;
-	((ID3D11Texture2D*)colorTex)->GetDesc(&colorTexDesc);
-	colorTex->Release();
-
 	// Set the constant buffer.
 	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, gpuModelData.ConstantBuffer.GetAddressOf());
 
@@ -411,9 +401,12 @@ void Renderer::Present(CoreObject& coreObject)
 		(UINT)gpuModelData.Vertices.size(),		// The number of vertices to draw.
 		0										// The index of the first vertex to draw.
 	);
+}
 
+void Renderer::Present()
+{
 	// Present the contents of the back buffer to the screen.
-	//m_idxgiSwapChain->Present(0, 0);
+	m_idxgiSwapChain->Present(0, 0);
 }
 
 void Renderer::CreateVertexBuffer(GPUModelData& gpuModelData)

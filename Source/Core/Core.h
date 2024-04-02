@@ -73,7 +73,10 @@ private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
 	void CreateViewPort();
-	void Present(CoreObject& coreObject);
+
+	void Clear();
+	void Draw(CoreObject& coreObject);
+	void Present();
 
 public:
 	void CreateVertexBuffer(GPUModelData& gpuModelData);
