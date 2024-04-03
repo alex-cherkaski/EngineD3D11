@@ -25,7 +25,6 @@ using namespace DirectX;
 #include "Includes/DXUT/dxerr.h"
 
 #include "Includes/DirectXTK/WICTextureLoader.h"
-#include "Includes/DirectXTK/DDSTextureLoader.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
