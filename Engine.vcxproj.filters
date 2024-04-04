@@ -68,4 +68,10 @@
     <FxCompile Include="Source\Shaders\SingleTextureShader.fx" />
     <FxCompile Include="Source\Shaders\SingleBlendTextureShader.hlsl" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Images\Font.dds" />
+    <Image Include="Resources\Images\PNG_transparency_demonstration_1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

@@ -3,18 +3,27 @@
 #include "CoreStructs.h"
 #include "Macros.h"
 
-
-
 class CoreObjectManager final
 {
 	SINGLETON(CoreObjectManager);
 
 public:
 	void Initialize();
-	const std::vector<CoreObject>& GetCoreObjectsRead() const { return m_coreObjects; }
-	std::vector<CoreObject>& GetCoreObjectsWrite() { return m_coreObjects; }
+
+	void InitializeSprites();
+	void InitializeUITexts();
+
+	const std::vector<CoreObject>& GetCoreSpritesRead() const { return m_coreSprites; }
+	std::vector<CoreObject>& GetCoreSpritesWrite() { return m_coreSprites; }
+
+	const std::vector<CoreObject>& GetCoreUITextsRead() const { return m_coreUITexts; }
+	std::vector<CoreObject>& GetCoreUITextsWrite() { return m_coreUITexts; }
 
 private:
-	std::vector<CoreObject> m_coreObjects;
+	void SetUIText(GPUModelData& gpuModelData);
+
+private:
+	std::vector<CoreObject> m_coreSprites = { };
+	std::vector<CoreObject> m_coreUITexts = { };
 };
 

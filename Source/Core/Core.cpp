@@ -188,9 +188,13 @@ void Renderer::Render()
 	Clear();
 
 	static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
-	for (CoreObject& coreObject : coreObjectManager.GetCoreObjectsWrite())
+	for (const CoreObject& coreObject : coreObjectManager.GetCoreSpritesRead())
 	{
-		Draw(coreObject);
+		DrawSprites(coreObject);
+	}
+	for (const CoreObject& coreObject : coreObjectManager.GetCoreUITextsRead())
+	{
+		DrawUITexts(coreObject);
 	}
 
 	Present();
@@ -329,9 +333,9 @@ void Renderer::Clear()
 	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
 }
 
-void Renderer::Draw(CoreObject& coreObject)
+void Renderer::DrawSprites(const CoreObject& coreObject)
 {
-	CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
 	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
 
 	// Calculate each vertex element stride and position.
@@ -403,13 +407,19 @@ void Renderer::Draw(CoreObject& coreObject)
 	);
 }
 
+void Renderer::DrawUITexts(const CoreObject& coreObject)
+{
+	WriteUITextData(coreObject);
+	DrawSprites(coreObject);
+}
+
 void Renderer::Present()
 {
 	// Present the contents of the back buffer to the screen.
 	m_idxgiSwapChain->Present(0, 0);
 }
 
-void Renderer::CreateVertexBuffer(GPUModelData& gpuModelData)
+void Renderer::CreateDefaultVertexBuffer(GPUModelData& gpuModelData)
 {
 	// Initialize the vertex buffer descriptor struct.
 	D3D11_BUFFER_DESC vertexBufferDecription = { 0 };
@@ -424,14 +434,34 @@ void Renderer::CreateVertexBuffer(GPUModelData& gpuModelData)
 	// Attempt to create the vertex buffer.
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
 	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
-		&vertexBufferDecription,		// The buffer description struct.
-		&initialBufferData,				// The initial buffer data.
-		vertexBuffer.GetAddressOf()		// Pointer to the resulting buffer interface.
+		&vertexBufferDecription,					// The buffer description struct.
+		&initialBufferData,							// The initial buffer data.
+		gpuModelData.VertexBuffer.GetAddressOf()	// Pointer to the resulting buffer interface.
 	);
 
 	// Error check vertex buffer creation.
 	ENGINE_ASSERT_HRESULT(createBufferResult);
-	gpuModelData.VertexBuffer = vertexBuffer;
+}
+
+void Renderer::CreateDynamicVertexBuffer(GPUModelData& gpuModelData)
+{
+	// Initialize the vertex buffer descriptor struct.
+	D3D11_BUFFER_DESC vertexBufferDecriptor = { 0 };
+	vertexBufferDecriptor.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;									// How the buffer will be accessed.
+	vertexBufferDecriptor.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;			// What sort of access the CPU needs to the vertex buffer on the GPU.
+	vertexBufferDecriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
+	vertexBufferDecriptor.ByteWidth = (UINT)(6 * 24 * sizeof(VertexData));								// The size of the buffer.
+
+	// Attempt to create the vertex buffer.
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&vertexBufferDecriptor,						// The buffer description struct.
+		nullptr,									// The initial buffer data. We will update the buffer contents dynamically at runtime.
+		gpuModelData.VertexBuffer.GetAddressOf()	// Pointer to the resulting buffer interface.
+	);
+
+	// Error check vertex buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
 }
 
 void Renderer::CreateIndexBuffer(GPUModelData& gpuModelData)
@@ -553,39 +583,40 @@ void Renderer::CreatePixelShader(GPUModelData& gpuModelData)
 
 void Renderer::CreateShaderResourceViewFromFile(GPUModelData& gpuModelData)
 {
-	// Attempt to create the texture.
-	const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFile(
-		m_id3d11Device.Get(),								// The device to use when creating the texture view.
-		m_id3d11DeviceContext.Get(),						// The device context to use when creating the texture view.
-		gpuModelData.TextureFilePath.c_str(),				// The path to the texture the view should be create for.
-		nullptr,											// Optional pointer to ID3D11Texture2D.
-		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the resulting shader resource view.
-	);
+	if (gpuModelData.IsDDS)
+	{
+		// Attempt to create the DDS texture.
+		const HRESULT createDDCTextyreFromFileResult = CreateDDSTextureFromFile(
+			m_id3d11Device.Get(),										// The device to use to create the texture view.
+			gpuModelData.TextureFilePath.c_str(),						// The path to the DDS texture we wish to create.
+			(ID3D11Resource**)gpuModelData.Texture2D.GetAddressOf(),	// Optional pointer to fill the texture interface.
+			gpuModelData.ShaderResourceView.GetAddressOf()				// Pointer to the returned shader resource.
+		);
 
-	//Microsoft::WRL::ComPtr<ID3D11Resource> res;
+		// Error check shader resource view creation.
+		ENGINE_ASSERT_HRESULT(createDDCTextyreFromFileResult);
 
-	//const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFileEx(
-	//	m_id3d11Device.Get(),
-	//	m_id3d11DeviceContext.Get(),
-	//	gpuModelData.TextureFilePath.c_str(),
-	//	0,
-	//	D3D11_USAGE_DEFAULT,
-	//	D3D11_BIND_SHADER_RESOURCE,
-	//	0,
-	//	0,
-	//	WIC_LOADER_FORCE_RGBA32 | WIC_LOADER_IGNORE_SRGB,
-	//	res.GetAddressOf(),
-	//	gpuModelData.ShaderResourceView.GetAddressOf()
-	//);
+		// Cache texture description struct.
+		gpuModelData.Texture2D->GetDesc(&gpuModelData.Texture2DDescriptor);
+	}
 
-	//Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
-	//const HRESULT hr = res.As(&tex);
+	else
+	{
+		// Attempt to create the non DDS texture.
+		const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFile(
+			m_id3d11Device.Get(),										// The device to use when creating the texture view.
+			m_id3d11DeviceContext.Get(),								// The device context to use when creating the texture view.
+			gpuModelData.TextureFilePath.c_str(),						// The path to the texture the view should be create for.
+			(ID3D11Resource**)gpuModelData.Texture2D.GetAddressOf(),	// Optional pointer to the resulted texture interface.
+			gpuModelData.ShaderResourceView.GetAddressOf()				// Pointer to the resulting shader resource view.
+		);
 
-	//D3D11_TEXTURE2D_DESC desc;
-	//tex->GetDesc(&desc);
+		// Error check shader resource view creation.
+		ENGINE_ASSERT_HRESULT(createWICTextureFromFileResult);
 
-	// Error check shader resource view creation.
-	ENGINE_ASSERT_HRESULT(createWICTextureFromFileResult);
+		// Cache texture description struct.
+		gpuModelData.Texture2D->GetDesc(&gpuModelData.Texture2DDescriptor);
+	}
 }
 
 void Renderer::CreateSamplerState(GPUModelData& gpuModelData)
@@ -683,5 +714,40 @@ void Renderer::UpdateProjectionMatrix()
 void Renderer::UpdateViewProjectionMatrix()
 {
 	m_viewProjectionMatrix = XMMatrixMultiply(m_viewMatrix, m_projectionMatrix);
+}
+
+void Renderer::WriteUITextData(const CoreObject& coreObject)
+{
+	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
+
+	// Attempt to lock the vertex buffer and retrieve its data pointer.
+	D3D11_MAPPED_SUBRESOURCE vertexBufferData = { nullptr };
+	const HRESULT mapResult = m_id3d11DeviceContext->Map(
+		(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to the device interface to lock and retrieve data of.
+		0,													// The index slot of the resource we wish to map.
+		D3D11_MAP::D3D11_MAP_WRITE_DISCARD,					// Discard the last entry of the resource and use what is written.
+		0,													// Additional mapping create flags.
+		&vertexBufferData
+	);
+
+	// Error check vertex buffer data retrieval and locking.
+	ENGINE_ASSERT_HRESULT(mapResult);
+
+	// Get the vertex buffer data pointer.
+	VertexData* vertexData = (VertexData*)vertexBufferData.pData;
+
+	// Copy the contents of the vertex data into the vertex buffer pointer.
+	for (UINT i = 0; i < gpuModelData.Vertices.size(); ++i)
+	{
+		vertexData[i].m_position = gpuModelData.Vertices[i].m_position;
+		vertexData[i].m_texture = gpuModelData.Vertices[i].m_texture;
+	}
+
+	// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.
+	m_id3d11DeviceContext->Unmap(
+		(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to resource to unlock and invalidate mapped subresource pointer of.
+		0													// The slot of the GPU resource that is being unlocked.
+	);
 }
 

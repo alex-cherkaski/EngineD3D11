@@ -75,11 +75,13 @@ private:
 	void CreateViewPort();
 
 	void Clear();
-	void Draw(CoreObject& coreObject);
+	void DrawSprites(const CoreObject& coreObject);
+	void DrawUITexts(const CoreObject& coreObject);
 	void Present();
 
 public:
-	void CreateVertexBuffer(GPUModelData& gpuModelData);
+	void CreateDefaultVertexBuffer(GPUModelData& gpuModelData);
+	void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
 	void CreateIndexBuffer(GPUModelData& gpuModelData);
 	void CreateVertexShader(GPUModelData& gpuModelData);
 	void CreateInputLayout(GPUModelData& gpuModelData);
@@ -98,6 +100,9 @@ public:
 	void UpdateViewMatrix();
 	void UpdateProjectionMatrix();
 	void UpdateViewProjectionMatrix();
+
+private:
+	void WriteUITextData(const CoreObject& coreObject);
 
 private:
 	XMMATRIX m_viewMatrix = XMMatrixIdentity();
