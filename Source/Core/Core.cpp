@@ -24,6 +24,19 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		Engine::GetInstanceWrite().IsRunning(false);
 		break;
 
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			// Post a WM_QUIT message to the window message queue and stop the engine.
+			PostQuitMessage(EXIT_SUCCESS);
+			Engine::GetInstanceWrite().IsRunning(false);
+			break;
+
+		default:
+			break;
+		}
+
 	default:
 		break;
 	}
