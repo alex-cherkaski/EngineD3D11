@@ -32,13 +32,7 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			PostQuitMessage(EXIT_SUCCESS);
 			Engine::GetInstanceWrite().IsRunning(false);
 			break;
-
-		default:
-			break;
 		}
-
-	default:
-		break;
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
