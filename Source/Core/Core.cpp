@@ -181,6 +181,8 @@ void Renderer::Initialize()
 {
 	CreateDeviceAndSwapChain();
 	CreateRenderTargetView();
+	CreateDepthStencilView();
+
 	CreateViewPort();
 
 	UpdateViewMatrix();
@@ -252,7 +254,6 @@ void Renderer::CreateDeviceAndSwapChain()
 
 	// Attempt to create the device and swap chain.
 	HRESULT createDeviceAndSwapChainResult = E_FAIL;
-	D3D_FEATURE_LEVEL resultingFeatureLevel = D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_1_0_CORE;
 	for (D3D_DRIVER_TYPE driverType : driverTypes)
 	{
 		createDeviceAndSwapChainResult = D3D11CreateDeviceAndSwapChain(
@@ -266,7 +267,7 @@ void Renderer::CreateDeviceAndSwapChain()
 			&swapChainDescription,					// The swap chain descriptor struct.
 			m_idxgiSwapChain.GetAddressOf(),		// Pointer to the resulting swap chain interface.
 			m_id3d11Device.GetAddressOf(),			// Pointer to the resulting device interface.
-			&resultingFeatureLevel,					// The feature level the device was created with.
+			&m_featureLevel,						// The feature level the device was created with.
 			m_id3d11DeviceContext.GetAddressOf()	// Pointer to the resulting device context interface.
 		);
 
@@ -304,13 +305,56 @@ void Renderer::CreateRenderTargetView()
 
 	// Error check render target view creation.
 	ENGINE_ASSERT_HRESULT(createRenderTargetViewResult);
+}
 
-	// Set the render target view that will be sued to access and write to the back buffer.
-	m_id3d11DeviceContext->OMSetRenderTargets(
-		1,											// The number of render target views to set.
-		m_id3d11RenderTargetView.GetAddressOf(),	// The array of pointers to the render target views to set.
-		nullptr										// Optional depth stencil view.
+void Renderer::CreateDepthStencilView()
+{
+	const Window& window = Window::GetInstanceRead();
+
+	// Initialize the depth stencil texture descriptor struct.
+	D3D11_TEXTURE2D_DESC depthStencilTextureDescriptor = { 0 };
+	depthStencilTextureDescriptor.Width = window.GetClientWidth();			// The width of the depth stencil buffer.
+	depthStencilTextureDescriptor.Height = window.GetClientHeight();		// The height of the depth stencil buffer.
+	depthStencilTextureDescriptor.MipLevels = 1;							// The maximum number of mipmap levels for this texture.
+	depthStencilTextureDescriptor.ArraySize = 1;							// The number of textures in the array to create.
+	depthStencilTextureDescriptor.Format = DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT; // The format of each depth stencil texture.
+	depthStencilTextureDescriptor.SampleDesc.Count = 1;						// The number of multi samples to take.
+	depthStencilTextureDescriptor.SampleDesc.Quality = 0;					// The quality of the multisamples to take.
+	depthStencilTextureDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;	// The GPU will have read and write access to this texture.
+	depthStencilTextureDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_DEPTH_STENCIL; // How the texture should be bound.
+	depthStencilTextureDescriptor.CPUAccessFlags = 0;						// The CPU will not need read or write access to this flag.
+	depthStencilTextureDescriptor.MiscFlags = 0;							// No additional special properties.
+
+	// Attempt to create the depth stencil texture.
+	const HRESULT createTexture2DResult = m_id3d11Device->CreateTexture2D(
+		&depthStencilTextureDescriptor,				// Depth stencil texture descriptor.
+		nullptr,									// Optional pointer to struct with initial data.
+		m_depthStencilTexture.GetAddressOf()		// Pointer to the returned interface of the texture.
 	);
+
+	// Error check depth stencil texture creation.
+	ENGINE_ASSERT_HRESULT(createTexture2DResult);
+
+	// Initialize the depth stencil view descriptor struct.
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescriptor = { };
+	depthStencilViewDescriptor.Format = DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT; // The format of the texture this view is for.
+	depthStencilViewDescriptor.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D; // How the resource will be accessed.
+	depthStencilViewDescriptor.Texture2D.MipSlice = 0;
+
+	// Attempt to create the depth stencil view.
+	const HRESULT createDepthStencilViewResult = m_id3d11Device->CreateDepthStencilView(
+		m_depthStencilTexture.Get(),				// Pointer to resource interface the view is being created for.
+		&depthStencilViewDescriptor,				// Pointer to the depth stencil view descriptor struct.
+		m_id3d11DepthStencilView.GetAddressOf()		// Pointer to the resulting depth stencil view interface.
+	);
+
+	// Error check depth stencil view creation.
+	ENGINE_ASSERT_HRESULT(createDepthStencilViewResult);
+}
+
+void Renderer::CreateConstantBuffers()
+{
+
 }
 
 void Renderer::CreateViewPort()
@@ -338,6 +382,15 @@ void Renderer::Clear()
 	// Clear the back buffer through the render target view.
 	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
 	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
+
+	// Clear the depth stencil buffer through the render target view.
+	constexpr UINT clearFlags = D3D11_CLEAR_FLAG::D3D11_CLEAR_DEPTH | D3D11_CLEAR_FLAG::D3D11_CLEAR_STENCIL;
+	m_id3d11DeviceContext->ClearDepthStencilView(
+		m_id3d11DepthStencilView.Get(),		// Pointer to the depth stencil view interface to clear the depth stencil buffer.
+		clearFlags,							// Flags stating what parts of the depth stencil texture to clear.
+		1.0f,								// Value to clear the depth part of the texture with.
+		0									// Value to clear the stencil part of the texture with.
+	);
 }
 
 void Renderer::DrawSprites(const CoreObject& coreObject)
@@ -363,6 +416,21 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 
 	// Set the primitive topology setting to draw the vertices with.
 	m_id3d11DeviceContext->IASetPrimitiveTopology(gpuModelData.PrimitiveTopology);
+
+	const XMMATRIX mvp = XMMatrixMultiplyTranspose(coreObject.GetWorldMatrix(), m_viewProjectionMatrix);
+
+	// Update the constant buffer with the mvp matrix.
+	m_id3d11DeviceContext->UpdateSubresource(
+		gpuModelData.ConstantBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,										// Index of the subresource we want to update.
+		nullptr,								// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&mvp,									// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),					// The size of one row of the source data.
+		0										// The size of the depth slice of the source data.
+	);
+
+	// Set the constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, gpuModelData.ConstantBuffer.GetAddressOf());
 
 	// Set the vertex shader to draw with.
 	m_id3d11DeviceContext->VSSetShader(
@@ -392,20 +460,12 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
 	);
 
-	const XMMATRIX mvp = XMMatrixMultiplyTranspose(coreObject.GetWorldMatrix(), m_viewProjectionMatrix);
-
-	// Update the constant buffer with the mvp matrix.
-	m_id3d11DeviceContext->UpdateSubresource(
-		gpuModelData.ConstantBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
-		0,										// Index of the subresource we want to update.
-		nullptr,								// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&mvp,									// Pointer to the buffer of data we wish to copy to the subresource.
-		sizeof(XMMATRIX::r),					// The size of one row of the source data.
-		0										// The size of the depth slice of the source data.
+	// Set the render target view that will be sued to access and write to the back buffer.
+	m_id3d11DeviceContext->OMSetRenderTargets(
+		1,											// The number of render target views to set.
+		m_id3d11RenderTargetView.GetAddressOf(),	// The array of pointers to the render target views to set.
+		m_id3d11DepthStencilView.Get()				// Optional pointerto depth stencil view interface.
 	);
-
-	// Set the constant buffer.
-	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, gpuModelData.ConstantBuffer.GetAddressOf());
 
 	// Draw the model.
 	m_id3d11DeviceContext->Draw(

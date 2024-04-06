@@ -72,6 +72,8 @@ public:
 private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
+	void CreateDepthStencilView();
+	void CreateConstantBuffers();
 	void CreateViewPort();
 
 	void Clear();
@@ -116,8 +118,16 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_id3d11RenderTargetView = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_backBufferTexture = nullptr;
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_id3d11ShaderResourceView = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthStencilTexture = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_id3d11DepthStencilView = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_modelMatrixBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewMatrixBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_projectionMatrixBuffer = nullptr;
 
 	D3D_DRIVER_TYPE m_driverType = D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_NULL;
+	D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_1_0_CORE;
 };
 

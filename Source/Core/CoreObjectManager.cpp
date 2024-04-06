@@ -144,12 +144,12 @@ void CoreObjectManager::SetUIText(GPUModelData& gpuModelData)
 		const float textureEndX = (currentCharMultiple * CHAR_WIDTH + CHAR_WIDTH) / TEXTURE_WIDTH;
 
 		// Create the vertex element data.
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 1.0f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexStartY, 1.0f), XMFLOAT2(textureEndX,   TEXTURE_END_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 1.0f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 1.0f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexEndY, 1.0f),	  XMFLOAT2(textureStartX, TEXTURE_START_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 1.0f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexStartY, 0.5f), XMFLOAT2(textureEndX,   TEXTURE_END_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 0.5f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 0.5f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexEndY, 0.5f),	  XMFLOAT2(textureStartX, TEXTURE_START_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
 	}
 }
 
