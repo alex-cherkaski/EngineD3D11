@@ -182,7 +182,8 @@ void Renderer::Initialize()
 	CreateDeviceAndSwapChain();
 	CreateRenderTargetView();
 	CreateDepthStencilView();
-
+	CreateBlendState();
+	CreateConstantBuffer();
 	CreateViewPort();
 
 	UpdateViewMatrix();
@@ -352,6 +353,57 @@ void Renderer::CreateDepthStencilView()
 	ENGINE_ASSERT_HRESULT(createDepthStencilViewResult);
 }
 
+void Renderer::CreateConstantBuffer()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,					// Pointer to the buffer descriptor struct.
+		nullptr,									// Pointer to optional initial data struct.
+		m_id3d11ConstantBuffer.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateBlendState()
+{
+	// Initialize blend state descriptor struct.
+	D3D11_BLEND_DESC blendDescriptor = { 0 };
+	blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
+	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
+	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
+	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
+	blendDescriptor.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;		// How to combine the source and destination alpha values.
+	blendDescriptor.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the pixel shader alpha value.
+	blendDescriptor.RenderTarget[0].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the current render target alpha value.
+	blendDescriptor.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;	// Which of RGBA to write the blend to. 
+
+	// Attempt to create blend state.
+	const HRESULT createBlendStateResult = m_id3d11Device->CreateBlendState(
+		&blendDescriptor,						// Pointer to the blend state descriptor struct.
+		m_id3d11BlendState.GetAddressOf()		// Pointer to the resulting blend state interface.
+	);
+
+	// Error check blend state creation.
+	ENGINE_ASSERT_HRESULT(createBlendStateResult);
+
+	// Blend factor to modulate the values of pixel shader, render target, or both.
+	constexpr float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// Set the blend state of the output merger stage.
+	m_id3d11DeviceContext->OMSetBlendState(
+		m_id3d11BlendState.Get(),		// Pointer to the blend state interface to set.
+		blendFactor,					// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
+		0xffffffff						// Which samples get updated in the currently active render target.
+	);
+}
+
 void Renderer::CreateConstantBuffers()
 {
 
@@ -421,16 +473,16 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 
 	// Update the constant buffer with the mvp matrix.
 	m_id3d11DeviceContext->UpdateSubresource(
-		gpuModelData.ConstantBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
-		0,										// Index of the subresource we want to update.
-		nullptr,								// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&mvp,									// Pointer to the buffer of data we wish to copy to the subresource.
-		sizeof(XMMATRIX::r),					// The size of one row of the source data.
-		0										// The size of the depth slice of the source data.
+		m_id3d11ConstantBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,									// Index of the subresource we want to update.
+		nullptr,							// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&mvp,								// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),				// The size of one row of the source data.
+		0									// The size of the depth slice of the source data.
 	);
 
 	// Set the constant buffer.
-	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, gpuModelData.ConstantBuffer.GetAddressOf());
+	m_id3d11DeviceContext->VSSetConstantBuffers(0, 1, m_id3d11ConstantBuffer.GetAddressOf());
 
 	// Set the vertex shader to draw with.
 	m_id3d11DeviceContext->VSSetShader(
@@ -455,9 +507,9 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 
 	// Set the pixel shader sampler state to sample the texture.
 	m_id3d11DeviceContext->PSSetSamplers(
-		0,												// The index of the shader sampler to set.
-		1,												// The number of sampler states in the sampler state array.
-		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
+		0,										// The index of the shader sampler to set.
+		1,										// The number of sampler states in the sampler state array.
+		m_id3d11SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
 	);
 
 	// Set the render target view that will be sued to access and write to the back buffer.
@@ -686,7 +738,7 @@ void Renderer::CreateShaderResourceViewFromFile(GPUModelData& gpuModelData)
 	}
 }
 
-void Renderer::CreateSamplerState(GPUModelData& gpuModelData)
+void Renderer::CreateSamplerState()
 {
 	// Initialize the sampler descriptor struct.
 	D3D11_SAMPLER_DESC samplerDescriptor = { };
@@ -699,63 +751,12 @@ void Renderer::CreateSamplerState(GPUModelData& gpuModelData)
 
 	// Attempt to create the sampler state.
 	const HRESULT createSamplerStateResult = m_id3d11Device->CreateSamplerState(
-		&samplerDescriptor,								// The sampler state descriptor struct.
-		gpuModelData.SamplerState.GetAddressOf()		// Pointer to the resulting sampler state interface.
+		&samplerDescriptor,						// The sampler state descriptor struct.
+		m_id3d11SamplerState.GetAddressOf()		// Pointer to the resulting sampler state interface.
 	);
 
 	// Error check sampler state creation.
 	ENGINE_ASSERT_HRESULT(createSamplerStateResult);
-}
-
-void Renderer::CreateConstantBuffer(GPUModelData& gpuModelData)
-{
-	// Initialize constant buffer descriptor struct.
-	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
-	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
-	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
-	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
-	
-	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
-		&constantBufferDescriptor,					// Pointer to the buffer descriptor struct.
-		nullptr,									// Pointer to optional initial data struct.
-		gpuModelData.ConstantBuffer.GetAddressOf()	// Pointer to resulting interface.
-	);
-
-	// Error check constant buffer creation.
-	ENGINE_ASSERT_HRESULT(createBufferResult);
-}
-
-void Renderer::CreateBlendState(GPUModelData& gpuModelData)
-{
-	// Initialize blend state descriptor struct.
-	D3D11_BLEND_DESC blendDescriptor = { 0 };
-	blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
-	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
-	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
-	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
-	blendDescriptor.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;		// How to combine the source and destination alpha values.
-	blendDescriptor.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the pixel shader alpha value.
-	blendDescriptor.RenderTarget[0].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the current render target alpha value.
-	blendDescriptor.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;	// Which of RGBA to write the blend to. 
-
-	// Attempt to create blend state.
-	const HRESULT createBlendStateResult = m_id3d11Device->CreateBlendState(
-		&blendDescriptor,							// Pointer to the blend state descriptor struct.
-		gpuModelData.BlendState.GetAddressOf()		// Pointer to the resulting blend state interface.
-	);
-
-	// Error check blend state creation.
-	ENGINE_ASSERT_HRESULT(createBlendStateResult);
-
-	// Blend factor to modulate the values of pixel shader, render target, or both.
-	constexpr float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	// Set the blend state of the output merger stage.
-	m_id3d11DeviceContext->OMSetBlendState(
-		gpuModelData.BlendState.Get(),		// Pointer to the blend state interface to set.
-		blendFactor,						// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
-		0xffffffff							// Which samples get updated in the currently active render target.
-	);
 }
 
 void Renderer::UpdateViewMatrix()

@@ -43,13 +43,10 @@ void CoreObjectManager::InitializeSprites()
 	renderer.CreateDefaultVertexBuffer(modelData);
 	renderer.CreateVertexShader(modelData);
 	renderer.CreateInputLayout(modelData);
-	renderer.CreateConstantBuffer(modelData);
 
 	// Create the pixel relevant GPU data.
 	renderer.CreatePixelShader(modelData);
 	renderer.CreateShaderResourceViewFromFile(modelData);
-	renderer.CreateSamplerState(modelData);
-	renderer.CreateBlendState(modelData);
 
 	// Set the output merger stage topology settings.
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -88,13 +85,10 @@ void CoreObjectManager::InitializeUITexts()
 	renderer.CreateDynamicVertexBuffer(modelData);
 	renderer.CreateVertexShader(modelData);
 	renderer.CreateInputLayout(modelData);
-	renderer.CreateConstantBuffer(modelData);
 
 	// Create the pixel relevant GPU data.
 	renderer.CreatePixelShader(modelData);
 	renderer.CreateShaderResourceViewFromFile(modelData);
-	renderer.CreateSamplerState(modelData);
-	renderer.CreateBlendState(modelData);
 
 	// Set the output merger stage topology settings.
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

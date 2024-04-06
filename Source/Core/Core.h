@@ -73,7 +73,10 @@ private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
 	void CreateDepthStencilView();
+	void CreateConstantBuffer();
+	void CreateBlendState();
 	void CreateConstantBuffers();
+	void CreateSamplerState();
 	void CreateViewPort();
 
 	void Clear();
@@ -90,10 +93,6 @@ public:
 
 	void CreatePixelShader(GPUModelData& gpuModelData);
 	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData);
-	void CreateSamplerState(GPUModelData& gpuModelData);
-
-	void CreateConstantBuffer(GPUModelData& gpuModelData);
-	void CreateBlendState(GPUModelData& gpuModelData);
 
 public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
@@ -122,6 +121,11 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthStencilTexture = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_id3d11DepthStencilView = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11BlendState> m_id3d11BlendState = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_id3d11ConstantBuffer = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_id3d11SamplerState = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_modelMatrixBuffer = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewMatrixBuffer = nullptr;
