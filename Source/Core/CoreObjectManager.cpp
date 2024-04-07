@@ -108,8 +108,8 @@ void CoreObjectManager::Initialize3DModels()
 	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
 
 	// Set the shader of the core object.
-	modelData.VertexShaderPath = L"./Source/Shaders/ColorInversionShader.hlsl";
-	modelData.PixelShaderPath = L"./Source/Shaders/ColorInversionShader.hlsl";
+	modelData.VertexShaderPath = L"./Source/Shaders/ColorShiftingShader.hlsl";
+	modelData.PixelShaderPath = L"./Source/Shaders/ColorShiftingShader.hlsl";
 	modelData.TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
 
 	// Set the vertex data of the core object
