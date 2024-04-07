@@ -68,6 +68,7 @@
     <FxCompile Include="Source\Shaders\FillColorShader.hlsl" />
     <FxCompile Include="Source\Shaders\SingleTextureShader.hlsl" />
     <FxCompile Include="Source\Shaders\CubeSingleTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
