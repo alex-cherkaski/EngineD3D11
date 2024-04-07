@@ -10,9 +10,9 @@ void CoreObject::SetGPUDataGUID(const GUID& gpuDataGUID)
 
 XMMATRIX CoreObject::GetWorldMatrix() const
 {
-	const XMMATRIX translationMatrix = XMMatrixTranslation(m_position.x, m_position.y, 0.0f);
+	const XMMATRIX translationMatrix = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	const XMMATRIX rotationZ = XMMatrixRotationAxis({ 0.0f, 0.0f, 1.0f }, m_rotation);
-	const XMMATRIX scale = XMMatrixScaling(m_scale.x, m_scale.y, 1.0f);
+	const XMMATRIX scale = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
 
 	return translationMatrix * rotationZ * scale;
 }

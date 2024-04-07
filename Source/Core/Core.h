@@ -75,13 +75,14 @@ private:
 	void CreateDepthStencilView();
 	void CreateConstantBuffer();
 	void CreateBlendState();
-	void CreateConstantBuffers();
 	void CreateSamplerState();
+	void CreateMVPConstantBuffers();
 	void CreateViewPort();
 
 	void Clear();
 	void DrawSprites(const CoreObject& coreObject);
 	void DrawUITexts(const CoreObject& coreObject);
+	void Draw3DModels(const CoreObject& coreObject);
 	void Present();
 
 public:
@@ -110,6 +111,7 @@ private:
 	XMMATRIX m_projectionMatrix = XMMatrixIdentity();
 	XMMATRIX m_viewProjectionMatrix = XMMatrixIdentity();
 
+private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_id3d11Device = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_id3d11DeviceContext = nullptr;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> m_idxgiSwapChain = nullptr;

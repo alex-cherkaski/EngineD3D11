@@ -183,7 +183,9 @@ void Renderer::Initialize()
 	CreateRenderTargetView();
 	CreateDepthStencilView();
 	CreateBlendState();
+	CreateSamplerState();
 	CreateConstantBuffer();
+	CreateMVPConstantBuffers();
 	CreateViewPort();
 
 	UpdateViewMatrix();
@@ -205,6 +207,10 @@ void Renderer::Render()
 	for (const CoreObject& coreObject : coreObjectManager.GetCoreUITextsRead())
 	{
 		DrawUITexts(coreObject);
+	}
+	for (const CoreObject& coreObject : coreObjectManager.GetCore3DModelsRead())
+	{
+		Draw3DModels(coreObject);
 	}
 
 	Present();
@@ -361,6 +367,7 @@ void Renderer::CreateConstantBuffer()
 	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
 	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
 
+	// Attempt to create the constant buffer.
 	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
 		&constantBufferDescriptor,					// Pointer to the buffer descriptor struct.
 		nullptr,									// Pointer to optional initial data struct.
@@ -402,11 +409,6 @@ void Renderer::CreateBlendState()
 		blendFactor,					// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
 		0xffffffff						// Which samples get updated in the currently active render target.
 	);
-}
-
-void Renderer::CreateConstantBuffers()
-{
-
 }
 
 void Renderer::CreateViewPort()
@@ -532,6 +534,139 @@ void Renderer::DrawUITexts(const CoreObject& coreObject)
 	DrawSprites(coreObject);
 }
 
+void Renderer::Draw3DModels(const CoreObject& coreObject)
+{
+	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
+
+	// Calculate each vertex element stride and position.
+	const UINT stride = sizeof(VertexData);
+	const UINT offset = 0;
+
+	// Set the input layout for the current model
+	m_id3d11DeviceContext->IASetInputLayout(gpuModelData.InputLayout.Get());
+
+	// Set the vertex buffer for the current model.
+	m_id3d11DeviceContext->IASetVertexBuffers(
+		0,											// The slot to be used for this set of vertex buffer.
+		1,											// The number of vertex buffers in the vertex buffer array.
+		gpuModelData.VertexBuffer.GetAddressOf(),	// The array of vertex buffers to set.
+		&stride,									// The stride from one vertex element to the next.
+		&offset										// The offset until the first vertex element in the buffer.
+	);
+
+	// Set the index buffer for the current model.
+	m_id3d11DeviceContext->IASetIndexBuffer(
+		gpuModelData.IndexBuffer.Get(),			// Pointer to the index buffer interface to set.
+		DXGI_FORMAT::DXGI_FORMAT_R32_UINT,		// The format of the index buffer to set.
+		0										// Offset from the start of the index buffer to the first index to use.
+	);
+
+	// Set the primitive topology setting to draw the vertices with.
+	m_id3d11DeviceContext->IASetPrimitiveTopology(gpuModelData.PrimitiveTopology);
+
+	// Update the world matrix constant data.
+	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
+	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
+	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
+		coreObject.GetWorldMatrix(),
+		XMMatrixMultiply(rotationMatrix, translationMatrix)
+	);
+	m_id3d11DeviceContext->UpdateSubresource(
+		m_modelMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,								// Index of the subresource we want to update.
+		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&worldMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),			// The size of one row of the source data.
+		0								// The size of the depth slice of the source data.
+	);
+
+	// Update the view matrix constant data.
+	const XMMATRIX viewMatrix = XMMatrixTranspose(m_viewMatrix);
+	m_id3d11DeviceContext->UpdateSubresource(
+		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,								// Index of the subresource we want to update.
+		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&viewMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),			// The size of one row of the source data.
+		0								// The size of the depth slice of the source data.
+	);
+
+	// Update the projection matrix constant data.
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(m_projectionMatrix);
+	m_id3d11DeviceContext->UpdateSubresource(
+		m_projectionMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,									// Index of the subresource we want to update.
+		nullptr,							// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&projectionMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),				// The size of one row of the source data.
+		0									// The size of the depth slice of the source data.
+	);
+
+	// Set the world matrix constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(
+		0,										// The slot index that we are setting.
+		1,										// The number of buffers that we are setting.
+		m_modelMatrixBuffer.GetAddressOf()		// Pointer to the array of constant buffers to set.
+	);
+
+	// Set the view matrix constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(
+		1,										// The slot index that we are setting.
+		1,										// The number of buffers that we are setting.
+		m_viewMatrixBuffer.GetAddressOf()		// Pointer to the array of constant buffers to set.
+	);
+
+	// Set the projection matrix constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(
+		1,										// The slot index that we are setting.
+		2,										// The number of buffers that we are setting.
+		m_viewMatrixBuffer.GetAddressOf()		// Pointer to the array of constant buffers to set.
+	);
+
+	// Set the vertex shader to draw with.
+	m_id3d11DeviceContext->VSSetShader(
+		gpuModelData.VertexShader.Get(),	// Pointer to the vertex shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader to draw with.
+	m_id3d11DeviceContext->PSSetShader(
+		gpuModelData.PixelShader.Get(),		// Pointer to the pixel shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader resource view to use to set the shader texture.
+	m_id3d11DeviceContext->PSSetShaderResources(
+		0,													// The index of the shader resource we want to set.
+		1,													// The number of shader resources in the share resource array.
+		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the array of shader resources.
+	);
+
+	// Set the pixel shader sampler state to sample the texture.
+	m_id3d11DeviceContext->PSSetSamplers(
+		0,										// The index of the shader sampler to set.
+		1,										// The number of sampler states in the sampler state array.
+		m_id3d11SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
+	);
+
+	// Set the render target view that will be used to access and write to the back buffer.
+	m_id3d11DeviceContext->OMSetRenderTargets(
+		1,											// The number of render target views to set.
+		m_id3d11RenderTargetView.GetAddressOf(),	// The array of pointers to the render target views to set.
+		m_id3d11DepthStencilView.Get()				// Optional pointer to depth stencil view interface.
+	);
+
+	// Draw the model.
+	m_id3d11DeviceContext->DrawIndexed(
+		(UINT)gpuModelData.Indices.size(),	// The number of indices to draw.
+		0,									// The index of the first index value.
+		0									// Value added to each index before reading from the vertex buffer.
+	);
+}
+
 void Renderer::Present()
 {
 	// Present the contents of the back buffer to the screen.
@@ -585,6 +720,25 @@ void Renderer::CreateDynamicVertexBuffer(GPUModelData& gpuModelData)
 
 void Renderer::CreateIndexBuffer(GPUModelData& gpuModelData)
 {
+	// Initialize the index buffer descriptor struct.
+	D3D11_BUFFER_DESC indexBufferDescriptor = { 0 };
+	indexBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;							// The GPU will have read and write access to the buffer.
+	indexBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;				// How the buffer will be used by the driver.
+	indexBufferDescriptor.ByteWidth = (UINT)(sizeof(UINT) * gpuModelData.Indices.size());	// The size of the allocated index buffer.
+
+	// Initialize the initial index data struct.
+	D3D11_SUBRESOURCE_DATA initialIndexData = { nullptr };
+	initialIndexData.pSysMem = gpuModelData.Indices.data();
+
+	// Attempt to create the initial index buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&indexBufferDescriptor,						// The index buffer descriptor struct.
+		&initialIndexData,							// Pointer to struct with initial index buffer data.
+		gpuModelData.IndexBuffer.GetAddressOf()		// Pointer to the returned vertex buffer interface.
+	);
+
+	// Error check index buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
 }
 
 void Renderer::CreateVertexShader(GPUModelData& gpuModelData)
@@ -759,6 +913,45 @@ void Renderer::CreateSamplerState()
 	ENGINE_ASSERT_HRESULT(createSamplerStateResult);
 }
 
+void Renderer::CreateMVPConstantBuffers()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	// Attempt to create the model matrix constant buffer.
+	const HRESULT createModelMatrixBuffer = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
+		nullptr,								// Pointer to optional initial data struct.
+		m_modelMatrixBuffer.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check model matrix constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createModelMatrixBuffer);
+
+	// Attempt to create the view matrix constant buffer.
+	const HRESULT createViewMatrixBuffer = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
+		nullptr,								// Pointer to optional initial data struct.
+		m_viewMatrixBuffer.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check view matrix constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createViewMatrixBuffer);
+
+	// Attempt to create the projection matrix constant buffer.
+	const HRESULT createProjectionMatrixBuffer = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,					// Pointer to the buffer descriptor struct.
+		nullptr,									// Pointer to optional initial data struct.
+		m_projectionMatrixBuffer.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check projection matrix constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createProjectionMatrixBuffer);
+}
+
 void Renderer::UpdateViewMatrix()
 {
 	m_viewMatrix = XMMatrixIdentity();
@@ -769,13 +962,20 @@ void Renderer::UpdateProjectionMatrix()
 	static const Window& window = Window::GetInstanceRead();
 
 	// Construct the window dimensions based on window's client dimensions.
-	m_projectionMatrix = XMMatrixOrthographicOffCenterLH(
-		0.0f,									// Left end of the view volume.
-		(float)window.GetClientWidth(),			// Right end of the view volume.
-		0.0f,									// Bottom end of the view volume.
-		(float)window.GetClientHeight(),		// Top end of the view volume.
-		0.1f,									// Distance of the near plane from the camera.
-		100.0f									// Distance of the far plane from the camera.
+// 	m_projectionMatrix = XMMatrixOrthographicOffCenterLH(
+// 		0.0f,									// Left end of the view volume.
+// 		(float)window.GetClientWidth(),			// Right end of the view volume.
+// 		0.0f,									// Bottom end of the view volume.
+// 		(float)window.GetClientHeight(),		// Top end of the view volume.
+// 		0.1f,									// Distance of the near plane from the camera.
+// 		100.0f									// Distance of the far plane from the camera.
+// 	);
+
+	m_projectionMatrix = XMMatrixPerspectiveFovLH(
+		XM_PIDIV4,													// The vertical field of view.
+		(float)window.GetClientWidth() / window.GetClientHeight(),	// The aspect ratio of the window.
+		0.1f,														// Distance from the origin to the near clipping plane.
+		100.0f														// Distance form the origin to the far clipping plane.
 	);
 }
 

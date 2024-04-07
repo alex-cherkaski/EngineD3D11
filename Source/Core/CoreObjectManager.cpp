@@ -6,8 +6,9 @@
 
 void CoreObjectManager::Initialize()
 {
-	InitializeSprites();
-	InitializeUITexts();
+	//InitializeSprites();
+	//InitializeUITexts();
+	Initialize3DModels();
 }
 
 void CoreObjectManager::InitializeSprites()
@@ -52,10 +53,10 @@ void CoreObjectManager::InitializeSprites()
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	// Add two instances of the core object to run with.
-	m_coreSprites.push_back(coreObject);
-	m_coreSprites.push_back(coreObject);
+	//m_coreSprites.push_back(coreObject);
+	//m_coreSprites.push_back(coreObject);
 
-	m_coreSprites[1].SetPosition({ 400.0f, 300.0f });
+	//m_coreSprites[1].SetPosition({ 400.0f, 300.0f });
 }
 
 void CoreObjectManager::InitializeUITexts()
@@ -72,10 +73,6 @@ void CoreObjectManager::InitializeUITexts()
 	modelData.IsDDS = true;
 
 	modelData.Message = "HELLO WORLD!";
-
-	const Window& window = Window::GetInstanceRead();
-	const float clientWidth = (float)window.GetClientWidth();
-	const float clientHeight = (float)window.GetClientHeight();
 
 	SetUIText(modelData);
 
@@ -94,13 +91,82 @@ void CoreObjectManager::InitializeUITexts()
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	// Add two instances of the core object to run with.
-	m_coreUITexts.push_back(coreObject);
-	m_coreUITexts.push_back(coreObject);
+	//m_coreUITexts.push_back(coreObject);
+	//m_coreUITexts.push_back(coreObject);
 
-	m_coreUITexts[0].SetPosition({ 0.0f, 600.0f });
-	m_coreUITexts[1].SetPosition({ 0.0f, 0.0f });
+	//m_coreUITexts[0].SetPosition({ 0.0f, 600.0f });
+	//m_coreUITexts[1].SetPosition({ 0.0f, 0.0f });
 
-	m_coreUITexts[0].SetScale({ 2.0f, 1.0f });
+	//m_coreUITexts[0].SetScale({ 2.0f, 1.0f });
+}
+
+void CoreObjectManager::Initialize3DModels()
+{
+	// Generate a model data struct to fill with all the GPU relevant handles.
+	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
+	CoreObject coreObject(gpuDataManager.GenerateGUID());
+	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
+
+	// Set the shader of the core object.
+	modelData.VertexShaderPath = L"./Source/Shaders/CubeSingleTextureShader.hlsl";
+	modelData.PixelShaderPath = L"./Source/Shaders/CubeSingleTextureShader.hlsl";
+	modelData.TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
+
+	// Set the vertex data of the core object
+	modelData.Vertices = {
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }
+	};
+
+	// Set the index data of the core object.
+	modelData.Indices = {
+		3, 1, 0, 2, 1, 3,
+		6, 4, 5, 7, 4, 6,
+		11, 9, 8, 10, 9, 11,
+		14, 12, 13, 15, 12, 14,
+		19, 17, 16, 18, 17, 19,
+		22, 20, 21, 23, 20, 22
+	};
+
+	Renderer& renderer = Renderer::GetInstanceWrite();
+
+	// Create the vertex relevant GPU data.
+	renderer.CreateDefaultVertexBuffer(modelData);
+	renderer.CreateIndexBuffer(modelData);
+	renderer.CreateVertexShader(modelData);
+	renderer.CreateInputLayout(modelData);
+
+	// Create the pixel relevant GPU data.
+	renderer.CreatePixelShader(modelData);
+	renderer.CreateShaderResourceViewFromFile(modelData);
+
+	// Set the output merger stage topology settings.
+	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	// Add an instance of the core object to run with.
+	m_core3DModels.push_back(coreObject);
 }
 
 void CoreObjectManager::SetUIText(GPUModelData& gpuModelData)

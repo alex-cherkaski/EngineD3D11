@@ -64,13 +64,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\Shaders\FillColorShader.fx" />
-    <FxCompile Include="Source\Shaders\SingleTextureShader.fx" />
     <FxCompile Include="Source\Shaders\SingleBlendTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\FillColorShader.hlsl" />
+    <FxCompile Include="Source\Shaders\SingleTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\CubeSingleTextureShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
     <Image Include="Resources\Images\PNG_transparency_demonstration_1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Images\Stone_Wall.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
