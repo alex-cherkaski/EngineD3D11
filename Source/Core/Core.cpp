@@ -638,20 +638,13 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 		0									// Number of entries in the optional array of ID3D11ClassInstance.
 	);
 
-	// Set the pixel shader resource view to use to set the shader texture.
-	m_id3d11DeviceContext->PSSetShaderResources(
-		0,																	// The index of the shader resource we want to set.
-		1,																	// The number of shader resources in the share resource array.
-		gpuModelData.GPUTextureDatas[0].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
-	);
-
-	// Set the second shader resource view if one such exists.
-	if (gpuModelData.GPUTextureDatas[1].ShaderResourceView != nullptr)
+	for (size_t i = 0; i < gpuModelData.GPUTextureDatas.size() && gpuModelData.GPUTextureDatas[i].ShaderResourceView != nullptr; ++i)
 	{
+		// Set the pixel shader resource view to use to set the shader texture.
 		m_id3d11DeviceContext->PSSetShaderResources(
-			1, //!!!!															// The index of the shader resource we want to set.
+			(UINT)i,															// The index of the shader resource we want to set.
 			1,																	// The number of shader resources in the share resource array.
-			gpuModelData.GPUTextureDatas[1].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+			gpuModelData.GPUTextureDatas[i].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
 		);
 	}
 
