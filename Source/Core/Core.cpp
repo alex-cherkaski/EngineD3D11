@@ -884,7 +884,7 @@ void Renderer::CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData)
 			m_id3d11DeviceContext.Get(),								// The device context to use when creating the texture view.
 			gpuTextureData.TextureFilePath.c_str(),						// The path to the texture the view should be create for.
 			(ID3D11Resource**)gpuTextureData.Texture2D.GetAddressOf(),	// Optional pointer to the resulted texture interface.
-			gpuTextureData.ShaderResourceView.GetAddressOf()				// Pointer to the resulting shader resource view.
+			gpuTextureData.ShaderResourceView.GetAddressOf()			// Pointer to the resulting shader resource view.
 		);
 
 		// Error check shader resource view creation.
