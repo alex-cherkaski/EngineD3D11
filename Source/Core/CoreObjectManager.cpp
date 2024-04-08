@@ -119,7 +119,7 @@ void CoreObjectManager::Initialize3DModels()
 	modelData.VertexShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
 	modelData.PixelShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
 	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
-	modelData.GPUTextureDatas[1].TextureFilePath = L"./Resources/Images/Brick_Wall.jpg";
+	modelData.GPUTextureDatas[1].TextureFilePath = L"./Resources/Images/PNG_transparency_demonstration_1.png";
 
 	// Set the vertex data of the core object
 	modelData.Vertices = {

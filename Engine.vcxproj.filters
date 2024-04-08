@@ -80,5 +80,8 @@
     <Image Include="Resources\Images\Stone_Wall.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\Images\Brick_Wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
