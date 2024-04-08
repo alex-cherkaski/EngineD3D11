@@ -13,6 +13,7 @@ void CoreObjectManager::Initialize()
 
 void CoreObjectManager::InitializeSprites()
 {
+	/*
 	// Generate a model data struct to fill with all the GPU relevant handles.
 	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
 	CoreObject coreObject(gpuDataManager.GenerateGUID());
@@ -57,20 +58,24 @@ void CoreObjectManager::InitializeSprites()
 	//m_coreSprites.push_back(coreObject);
 
 	//m_coreSprites[1].SetPosition({ 400.0f, 300.0f });
+	*/
 }
 
 void CoreObjectManager::InitializeUITexts()
 {
+	/*
 	// Generate a model data struct to fill with all the GPU relevant handles.
 	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
 	CoreObject coreObject(gpuDataManager.GenerateGUID());
 	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
 
+	modelData.GPUTextureDatas.reserve(16);
+
 	// Set the shader of the core object.
 	modelData.VertexShaderPath = L"./Source/Shaders/SingleBlendTextureShader.hlsl";
 	modelData.PixelShaderPath = L"./Source/Shaders/SingleBlendTextureShader.hlsl";
-	modelData.TextureFilePath = L"./Resources/Images/Font.dds";
-	modelData.IsDDS = true;
+	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Images/Font.dds";
+	modelData.GPUTextureDatas[0].IsDDS = true;
 
 	modelData.Message = "HELLO WORLD!";
 
@@ -85,7 +90,7 @@ void CoreObjectManager::InitializeUITexts()
 
 	// Create the pixel relevant GPU data.
 	renderer.CreatePixelShader(modelData);
-	renderer.CreateShaderResourceViewFromFile(modelData);
+	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
 
 	// Set the output merger stage topology settings.
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -98,6 +103,7 @@ void CoreObjectManager::InitializeUITexts()
 	//m_coreUITexts[1].SetPosition({ 0.0f, 0.0f });
 
 	//m_coreUITexts[0].SetScale({ 2.0f, 1.0f });
+	*/
 }
 
 void CoreObjectManager::Initialize3DModels()
@@ -107,10 +113,13 @@ void CoreObjectManager::Initialize3DModels()
 	CoreObject coreObject(gpuDataManager.GenerateGUID());
 	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
 
+	modelData.GPUTextureDatas.resize(16);
+
 	// Set the shader of the core object.
-	modelData.VertexShaderPath = L"./Source/Shaders/ColorShiftingShader.hlsl";
-	modelData.PixelShaderPath = L"./Source/Shaders/ColorShiftingShader.hlsl";
-	modelData.TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
+	modelData.VertexShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
+	modelData.PixelShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
+	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
+	modelData.GPUTextureDatas[1].TextureFilePath = L"./Resources/Images/Brick_Wall.jpg";
 
 	// Set the vertex data of the core object
 	modelData.Vertices = {
@@ -160,7 +169,8 @@ void CoreObjectManager::Initialize3DModels()
 
 	// Create the pixel relevant GPU data.
 	renderer.CreatePixelShader(modelData);
-	renderer.CreateShaderResourceViewFromFile(modelData);
+	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
+	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[1]);
 
 	// Set the output merger stage topology settings.
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

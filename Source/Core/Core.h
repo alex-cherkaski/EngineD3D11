@@ -93,7 +93,7 @@ public:
 	void CreateInputLayout(GPUModelData& gpuModelData);
 
 	void CreatePixelShader(GPUModelData& gpuModelData);
-	void CreateShaderResourceViewFromFile(GPUModelData& gpuModelData);
+	void CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData);
 
 public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }

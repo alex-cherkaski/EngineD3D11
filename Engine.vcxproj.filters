@@ -70,6 +70,7 @@
     <FxCompile Include="Source\Shaders\CubeSingleTextureShader.hlsl" />
     <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl" />
     <FxCompile Include="Source\Shaders\ColorShiftingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\MultiTexturingShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />

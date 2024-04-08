@@ -502,9 +502,9 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 
 	// Set the pixel shader resource view to use to set the shader texture.
 	m_id3d11DeviceContext->PSSetShaderResources(
-		0,													// The index of the shader resource we want to set.
-		1,													// The number of shader resources in the share resource array.
-		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the array of shader resources.
+		0,																	// The index of the shader resource we want to set.
+		1,																	// The number of shader resources in the share resource array.
+		gpuModelData.GPUTextureDatas[0].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
 	);
 
 	// Set the pixel shader sampler state to sample the texture.
@@ -640,10 +640,20 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 
 	// Set the pixel shader resource view to use to set the shader texture.
 	m_id3d11DeviceContext->PSSetShaderResources(
-		0,													// The index of the shader resource we want to set.
-		1,													// The number of shader resources in the share resource array.
-		gpuModelData.ShaderResourceView.GetAddressOf()		// Pointer to the array of shader resources.
+		0,																	// The index of the shader resource we want to set.
+		1,																	// The number of shader resources in the share resource array.
+		gpuModelData.GPUTextureDatas[0].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
 	);
+
+	// Set the second shader resource view if one such exists.
+	if (gpuModelData.GPUTextureDatas[1].ShaderResourceView != nullptr)
+	{
+		m_id3d11DeviceContext->PSSetShaderResources(
+			1, //!!!!															// The index of the shader resource we want to set.
+			1,																	// The number of shader resources in the share resource array.
+			gpuModelData.GPUTextureDatas[1].ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+		);
+	}
 
 	// Set the pixel shader sampler state to sample the texture.
 	m_id3d11DeviceContext->PSSetSamplers(
@@ -854,23 +864,23 @@ void Renderer::CreatePixelShader(GPUModelData& gpuModelData)
 	ENGINE_ASSERT_HRESULT(createPixelShaderResult);
 }
 
-void Renderer::CreateShaderResourceViewFromFile(GPUModelData& gpuModelData)
+void Renderer::CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData)
 {
-	if (gpuModelData.IsDDS)
+	if (gpuTextureData.IsDDS)
 	{
 		// Attempt to create the DDS texture.
 		const HRESULT createDDCTextyreFromFileResult = CreateDDSTextureFromFile(
 			m_id3d11Device.Get(),										// The device to use to create the texture view.
-			gpuModelData.TextureFilePath.c_str(),						// The path to the DDS texture we wish to create.
-			(ID3D11Resource**)gpuModelData.Texture2D.GetAddressOf(),	// Optional pointer to fill the texture interface.
-			gpuModelData.ShaderResourceView.GetAddressOf()				// Pointer to the returned shader resource.
+			gpuTextureData.TextureFilePath.c_str(),						// The path to the DDS texture we wish to create.
+			(ID3D11Resource**)gpuTextureData.Texture2D.GetAddressOf(),	// Optional pointer to fill the texture interface.
+			gpuTextureData.ShaderResourceView.GetAddressOf()				// Pointer to the returned shader resource.
 		);
 
 		// Error check shader resource view creation.
 		ENGINE_ASSERT_HRESULT(createDDCTextyreFromFileResult);
 
 		// Cache texture description struct.
-		gpuModelData.Texture2D->GetDesc(&gpuModelData.Texture2DDescriptor);
+		gpuTextureData.Texture2D->GetDesc(&gpuTextureData.Texture2DDescriptor);
 	}
 
 	else
@@ -879,16 +889,16 @@ void Renderer::CreateShaderResourceViewFromFile(GPUModelData& gpuModelData)
 		const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFile(
 			m_id3d11Device.Get(),										// The device to use when creating the texture view.
 			m_id3d11DeviceContext.Get(),								// The device context to use when creating the texture view.
-			gpuModelData.TextureFilePath.c_str(),						// The path to the texture the view should be create for.
-			(ID3D11Resource**)gpuModelData.Texture2D.GetAddressOf(),	// Optional pointer to the resulted texture interface.
-			gpuModelData.ShaderResourceView.GetAddressOf()				// Pointer to the resulting shader resource view.
+			gpuTextureData.TextureFilePath.c_str(),						// The path to the texture the view should be create for.
+			(ID3D11Resource**)gpuTextureData.Texture2D.GetAddressOf(),	// Optional pointer to the resulted texture interface.
+			gpuTextureData.ShaderResourceView.GetAddressOf()				// Pointer to the resulting shader resource view.
 		);
 
 		// Error check shader resource view creation.
 		ENGINE_ASSERT_HRESULT(createWICTextureFromFileResult);
 
 		// Cache texture description struct.
-		gpuModelData.Texture2D->GetDesc(&gpuModelData.Texture2DDescriptor);
+		gpuTextureData.Texture2D->GetDesc(&gpuTextureData.Texture2DDescriptor);
 	}
 }
 
