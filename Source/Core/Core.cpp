@@ -866,7 +866,7 @@ void Renderer::CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData)
 			m_id3d11Device.Get(),										// The device to use to create the texture view.
 			gpuTextureData.TextureFilePath.c_str(),						// The path to the DDS texture we wish to create.
 			(ID3D11Resource**)gpuTextureData.Texture2D.GetAddressOf(),	// Optional pointer to fill the texture interface.
-			gpuTextureData.ShaderResourceView.GetAddressOf()				// Pointer to the returned shader resource.
+			gpuTextureData.ShaderResourceView.GetAddressOf()			// Pointer to the returned shader resource.
 		);
 
 		// Error check shader resource view creation.
