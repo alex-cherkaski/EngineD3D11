@@ -1,10 +1,11 @@
 #include "PCH.h"
+#include "Cameras/FirstPersonCamera.h"
 #include "Core.h"
 #include "CoreObject.h"
 #include "CoreObjectManager.h"
 #include "CoreGPUDataManager.h"
+#include "InputManager/InputManager.h"
 #include "Logger/Logger.h"
-#include "Camera/Camera.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -25,15 +26,116 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		Engine::GetInstanceWrite().IsRunning(false);
 		break;
 
+	case WM_ACTIVATE:
+		// Forward the message to the keyboard state
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_ACTIVATEAPP:
+		// Forward the message to the keyboard state
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_SYSKEYDOWN:
+		// TODO
+		//if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
+		//{
+		//	// This is where you'd implement the classic ALT+ENTER hotkey for fullscreen toggle
+		//	...
+		//}
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
 	case WM_KEYDOWN:
-		switch (wParam)
+		if (wParam == VK_ESCAPE)
 		{
-		case VK_ESCAPE:
 			// Post a WM_QUIT message to the window message queue and stop the engine.
 			PostQuitMessage(EXIT_SUCCESS);
 			Engine::GetInstanceWrite().IsRunning(false);
-			break;
 		}
+
+		// Forward the message to the keyboard state
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_KEYUP:
+		// Forward the message to the keyboard state.
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_SYSKEYUP:
+		// Forward the message to the keyboard state.
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MENUCHAR:
+		// A menu is active and the user presses a key that does not correspond
+		// to any mnemonic or accelerator key. Ignore so we don't produce an error beep.
+		return MAKELRESULT(0, MNC_CLOSE);
+
+	case WM_INPUT:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MOUSEMOVE:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_LBUTTONDOWN:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_LBUTTONUP:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_RBUTTONDOWN:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_RBUTTONUP:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MBUTTONDOWN:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MBUTTONUP:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MOUSEWHEEL:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_XBUTTONDOWN:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_XBUTTONUP:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MOUSEHOVER:
+		// Forward the message to the mouse state.
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_MOUSEACTIVATE:
+		// When you click to activate the window, we want Mouse to ignore that event.
+		return MA_ACTIVATEANDEAT;
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
@@ -45,6 +147,7 @@ void Window::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ in
 	CreateEngineWindow(hInstance, lpCmdLine, nShowCmd);
 	CalculateWindowDimensions();
 	CalculateFrameBufferDimensions();
+	InputManager::GetInstanceWrite().Initialize();
 
 	ShowWindow(m_windowHandle, nShowCmd);
 }
@@ -129,8 +232,14 @@ void Window::CalculateFrameBufferDimensions()
 
 void Engine::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
-	// Initialize COM and error check.
-	const HRESULT initCOMResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	// Attempt to initialize COM.
+	const DWORD flags = COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE;
+	const HRESULT initCOMResult = CoInitializeEx(
+		nullptr,	// Reserved and must be null.
+		flags		// COM initialization flags. We will be single threaded and no Object Linking or Embedding, which is obsolete.
+	);
+
+	// Error check COM initialization.
 	ENGINE_ASSERT_HRESULT(initCOMResult);
 
 	// Get the performance counter frequency.
@@ -187,7 +296,7 @@ void Engine::Update()
 {
 	const float delatTime = ENGINE_CLAMP_F(ComputeDeltaTime(), 0.0f, 0.05f);
 
-	Camera& camera = Camera::GetInstanceWrite();
+	FirstPersonCamera& camera = FirstPersonCamera::GetInstanceWrite();
 	camera.Update(delatTime);
 }
 
@@ -624,7 +733,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the view matrix constant data.
-	static const Camera& camera = Camera::GetInstanceRead();
+	static const FirstPersonCamera& camera = FirstPersonCamera::GetInstanceRead();
 	const XMMATRIX viewMatrix = XMMatrixTranspose(camera.GetViewMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.

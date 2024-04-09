@@ -36,10 +36,13 @@
     <ClCompile Include="Source\Core\CoreObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Camera\Camera.cpp">
+    <ClCompile Include="Source\Cameras\FirstPersonCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Input\Keyboard.cpp">
+    <ClCompile Include="Source\InputManager\InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Constants\Math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,13 +71,13 @@
     <ClInclude Include="Source\Core\CoreObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Camera\Camera.h">
+    <ClInclude Include="Source\Cameras\FirstPersonCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Enums\VirtualKeyCode.h">
+    <ClInclude Include="Source\InputManager\InputManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Input\Keyboard.h">
+    <ClInclude Include="Source\Constants\Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

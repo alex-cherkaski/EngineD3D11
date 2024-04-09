@@ -62,7 +62,6 @@ private:
 	LARGE_INTEGER m_performanceCounterFrequency = { };	// The constant number of ticks every second.
 	LARGE_INTEGER m_lastFramePerformanceCount = { };
 
-	TICK_COUNTER_TYPE m_ticksToLastFrame = GET_TICKS(); // In milliseconds.
 	bool m_isRunning = false;
 };
 

@@ -102,12 +102,9 @@ __pragma(warning(push)) \
 GetTickCount() \
 __pragma(warning(pop))
 
-#define TICK_COUNTER_TYPE DWORD
-
 #elif defined(ENVIRONMENT64)
 
 #define GET_TICKS() GetTickCount64(); // In milliseconds.
-#define TICK_COUNTER_TYPE ULONGLONG
 
 #else
 

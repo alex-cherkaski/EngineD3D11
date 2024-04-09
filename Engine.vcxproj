@@ -143,12 +143,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Camera\Camera.cpp" />
+    <ClCompile Include="Source\Constants\Math.cpp" />
+    <ClCompile Include="Source\InputManager\InputManager.cpp" />
+    <ClCompile Include="Source\Cameras\FirstPersonCamera.cpp" />
     <ClCompile Include="Source\Core\Core.cpp" />
     <ClCompile Include="Source\Core\CoreGPUDataManager.cpp" />
     <ClCompile Include="Source\Core\CoreObject.cpp" />
     <ClCompile Include="Source\Core\CoreObjectManager.cpp" />
-    <ClCompile Include="Source\Input\Keyboard.cpp" />
     <ClCompile Include="Source\Logger\Logger.cpp" />
     <ClCompile Include="Source\PCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -159,14 +160,14 @@
     <ClCompile Include="Source\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Camera\Camera.h" />
+    <ClInclude Include="Source\Constants\Math.h" />
+    <ClInclude Include="Source\InputManager\InputManager.h" />
+    <ClInclude Include="Source\Cameras\FirstPersonCamera.h" />
     <ClInclude Include="Source\Core\Core.h" />
     <ClInclude Include="Source\Core\CoreGPUDataManager.h" />
     <ClInclude Include="Source\Core\CoreObject.h" />
     <ClInclude Include="Source\Core\CoreObjectManager.h" />
     <ClInclude Include="Source\Core\CoreStructs.h" />
-    <ClInclude Include="Source\Enums\VirtualKeyCode.h" />
-    <ClInclude Include="Source\Input\Keyboard.h" />
     <ClInclude Include="Source\Logger\Logger.h" />
     <ClInclude Include="Source\Macros.h" />
     <ClInclude Include="Source\PCH.h" />
