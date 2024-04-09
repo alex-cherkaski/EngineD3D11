@@ -91,3 +91,27 @@
 	&& MEMBER.Data4[6] == 0 \
 	&& MEMBER.Data4[7] == 0)
 
+#define ENGINE_CLAMP_F(VALUE, MIN, MAX) \
+	fmax(MIN, fmin(VALUE, MAX))
+
+#if defined(ENVIRONMENT32)
+
+#define GET_TICKS() \
+__pragma(warning(disable : 28159)) \
+__pragma(warning(push)) \
+GetTickCount() \
+__pragma(warning(pop))
+
+#define TICK_COUNTER_TYPE DWORD
+
+#elif defined(ENVIRONMENT64)
+
+#define GET_TICKS() GetTickCount64(); // In milliseconds.
+#define TICK_COUNTER_TYPE ULONGLONG
+
+#else
+
+#error "Define ENVIRONMENT32 or ENVIRONMENT64."
+
+#endif
+

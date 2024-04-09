@@ -4,6 +4,7 @@
 #include "CoreObjectManager.h"
 #include "CoreGPUDataManager.h"
 #include "Logger/Logger.h"
+#include "Camera/Camera.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -130,7 +131,22 @@ void Engine::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ in
 {
 	// Initialize COM and error check.
 	const HRESULT initCOMResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	ENGINE_ASSERT(SUCCEEDED(initCOMResult), "Failedto initialize COM library.");
+	ENGINE_ASSERT_HRESULT(initCOMResult);
+
+	// Get the performance counter frequency.
+	const BOOL queryPerformanceFrequencyResult = QueryPerformanceFrequency(&m_performanceCounterFrequency);
+	ENGINE_ASSERT(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
+
+	// Set the thread's affinity to run on the same CPU core.
+	const HANDLE currentThreadHandle = GetCurrentThread();
+	const DWORD threadAffinityMask = 1 << GetCurrentProcessorNumber();
+	const DWORD_PTR setThreadAffinityMaskResult = SetThreadAffinityMask(
+		currentThreadHandle,	// The handle to the thread we are setting.
+		threadAffinityMask		// The mask representing the CPU core the thread will be tied to.
+	);
+
+	// Error check main thread affinity mask setting.
+	ENGINE_ASSERT(queryPerformanceFrequencyResult, "Failed to SetThreadAffinityMask.");
 
 	Logger::GetInstanceWrite().Initialize();
 	Window::GetInstanceWrite().Initialize(hInstance, lpCmdLine, nShowCmd);
@@ -169,12 +185,38 @@ void Engine::ProcessInput()
 
 void Engine::Update()
 {
+	const float delatTime = ENGINE_CLAMP_F(ComputeDeltaTime(), 0.0f, 0.05f);
+
+	Camera& camera = Camera::GetInstanceWrite();
+	camera.Update(delatTime);
 }
 
 void Engine::Render()
 {
 	static Renderer& renderer = Renderer::GetInstanceWrite();
 	renderer.Render();
+}
+
+float Engine::ComputeDeltaTime()
+{
+	// Get the performance counter value for the current frame.
+	LARGE_INTEGER currentPerformanceCounter = { };
+	const BOOL queryPerformanceCounterResult = QueryPerformanceCounter(&currentPerformanceCounter);
+	ENGINE_ASSERT(queryPerformanceCounterResult, "Failed to QueryPerformanceCounter.");
+
+	// Calculate the delta time.
+	const float deltaTime =
+		(float)(currentPerformanceCounter.QuadPart - m_lastFramePerformanceCount.QuadPart)
+		/ (float)(m_performanceCounterFrequency.QuadPart);
+
+	// Cache the current frame's performance count for the next frame.
+	m_lastFramePerformanceCount = currentPerformanceCounter;
+
+#ifdef _DEBUG // Clamp the deltaTime in case of breakpoints.
+	return ENGINE_CLAMP_F(deltaTime, 0.0f, 0.05f);
+#else
+	return deltaTime;
+#endif // _DEBUG
 }
 
 void Renderer::Initialize()
@@ -582,7 +624,8 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the view matrix constant data.
-	const XMMATRIX viewMatrix = XMMatrixTranspose(m_viewMatrix);
+	static const Camera& camera = Camera::GetInstanceRead();
+	const XMMATRIX viewMatrix = XMMatrixTranspose(camera.GetViewMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
