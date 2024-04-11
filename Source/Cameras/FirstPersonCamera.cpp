@@ -1,4 +1,5 @@
 #include "PCH.h"
+#include "Core/Core.h"
 #include "FirstPersonCamera.h"
 #include "InputManager/InputManager.h"
 
@@ -6,6 +7,7 @@ void FirstPersonCamera::Update(float deltaTime)
 {
 	UpdateRotation(deltaTime);
 	UpdatePosition(deltaTime);
+	UpdateZoom(deltaTime);
 }
 
 XMMATRIX FirstPersonCamera::GetViewMatrix() const
@@ -20,6 +22,19 @@ XMMATRIX FirstPersonCamera::GetViewMatrix() const
 
 	// Create and return the final view matrix.
 	return XMMatrixLookAtLH(position, lookAtTarget, up);
+}
+
+XMMATRIX FirstPersonCamera::GetProjectionMatrix() const
+{
+	// Retrieve and computer the necessary window parameters.
+	const Window& window = Window::GetInstanceRead();
+	const float fovAngle = XMConvertToRadians(m_fovAngle);
+	const float aspecRatio = (float)window.GetClientWidth() / window.GetClientHeight();
+	constexpr float zNear = 0.01f;
+	constexpr float zFar = 100.0f;
+
+	// Construct the final projection matrix.
+	return XMMatrixPerspectiveFovLH(fovAngle, aspecRatio, zNear, zFar);
 }
 
 void FirstPersonCamera::UpdateRotation(float deltaTime)
@@ -104,4 +119,25 @@ void FirstPersonCamera::UpdatePosition(float deltaTime)
 
 	// Write back the updated camera position.
 	XMStoreFloat3(&m_position, position);
+}
+
+void FirstPersonCamera::UpdateZoom(float deltaTime)
+{
+	// Get the input manager to retrieve the mouse state.
+	InputManager& inputManager = InputManager::GetInstanceWrite();
+	const Mouse::State mouseState = inputManager.GetMouseStateRead();
+
+	// If the mouse wheel has been scrolled this frame...
+	if (mouseState.scrollWheelValue)
+	{
+		// Determine if we scrolled up or down depending on the sign of the scroll wheel value.
+		const int_fast8_t scrollDirection = mouseState.scrollWheelValue > 0 ? -1 : 1;
+
+		// Adjust the camera FOV angle based on the scroll value.
+		m_fovAngle += deltaTime * scrollDirection * m_zoomSpeed;
+		m_fovAngle = ENGINE_CLAMP_F(m_fovAngle, 1.0f, 45.0f);
+
+		// Reset the state of the scroll wheel to check for up or down scrolls on the next frame.
+		inputManager.ResetMouseScrollWheelValue();
+	}
 }

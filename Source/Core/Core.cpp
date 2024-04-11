@@ -687,8 +687,12 @@ void Renderer::DrawUITexts(const CoreObject& coreObject)
 
 void Renderer::Draw3DModels(const CoreObject& coreObject)
 {
-	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	// Retrieve the core object's GPU referencing data to set the buffers and render state.
+	CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
 	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
+
+	// Retrieve the camera to query for view and projection matrices.
+	const FirstPersonCamera& camera = FirstPersonCamera::GetInstanceRead();
 
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);
@@ -733,7 +737,6 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the view matrix constant data.
-	static const FirstPersonCamera& camera = FirstPersonCamera::GetInstanceRead();
 	const XMMATRIX viewMatrix = XMMatrixTranspose(camera.GetViewMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
@@ -745,7 +748,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the projection matrix constant data.
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(m_projectionMatrix);
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(camera.GetProjectionMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_projectionMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,									// Index of the subresource we want to update.
