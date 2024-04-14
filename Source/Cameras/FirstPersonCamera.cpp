@@ -136,8 +136,5 @@ void FirstPersonCamera::UpdateZoom(float deltaTime)
 		// Adjust the camera FOV angle based on the scroll value.
 		m_fovAngle += deltaTime * scrollDirection * m_zoomSpeed;
 		m_fovAngle = ENGINE_CLAMP_F(m_fovAngle, 1.0f, 45.0f);
-
-		// Reset the state of the scroll wheel to check for up or down scrolls on the next frame.
-		inputManager.ResetMouseScrollWheelValue();
 	}
 }

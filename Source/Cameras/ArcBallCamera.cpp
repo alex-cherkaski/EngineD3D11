@@ -38,11 +38,17 @@ XMMATRIX ArcBallCamera::GetProjectionMatrix() const
 
 void ArcBallCamera::UpdatePosition(float deltaTime)
 {
+	// Retrieve the input manager to query for the mouse state.
 	const InputManager& inputManager = InputManager::GetInstanceRead();
 	const Mouse::State mouseState = inputManager.GetMouseStateRead();
 
+	// Check if there were any screen space changes with the mouse.
 	const int deltaX = mouseState.x - m_lastMousePosition.x;
 	const int deltaY = mouseState.y - m_lastMousePosition.y;
+
+	// Yaw and pitch changes.
+	float yaw = 0.0f;
+	float pitch = 0.0f;
 
 	if (mouseState.leftButton && deltaY)
 	{
@@ -50,7 +56,7 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 		const int_fast8_t direction = mouseState.y < m_lastMousePosition.y ? -1 : 1;
 
 		// Update the current x rotation angle.
-		m_rotation.x += direction * deltaTime * m_angularSpeed;
+		pitch = direction * deltaTime * m_angularSpeed;
 	}
 
 	if (mouseState.leftButton && deltaX)
@@ -59,7 +65,7 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 		const int_fast8_t direction = mouseState.x < m_lastMousePosition.x ? -1 : 1;
 
 		// Update the current y rotation angle.
-		m_rotation.y += direction * deltaTime * m_angularSpeed;
+		yaw = direction * deltaTime * m_angularSpeed;
 	}
 
 	// If there was any motion in the vertical or horizontal...
@@ -70,17 +76,17 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 
 		// Matrix to rotate the camera about the target.
 		const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(m_rotation.x),
-			XMConvertToRadians(m_rotation.y),
-			XMConvertToRadians(m_rotation.z)
+			XMConvertToRadians(pitch),
+			XMConvertToRadians(yaw),
+			0.0f
 		);
 		
 		// Matrix to translate the camera back to its world space position.
 		const XMMATRIX worldMatrix = XMMatrixTranslation(m_targetPosition.x, m_targetPosition.y, m_targetPosition.z);
 
 		// Perform the matrix transformations from above.
-		XMMATRIX transform = XMMatrixTranslation(m_transform._41, m_transform._42, m_transform._43);
-		transform = localMatrix * rotationMatrix * worldMatrix;
+		XMMATRIX transform = XMLoadFloat4x4(&m_transform);
+		transform *= localMatrix * rotationMatrix * worldMatrix;
 		XMStoreFloat4x4(&m_transform, transform);
 	}
 
@@ -103,9 +109,6 @@ void ArcBallCamera::UpdateZoom(float deltaTime)
 		// Adjust the camera FOV angle based on the scroll value.
 		m_fovAngle += deltaTime * scrollDirection * m_zoomSpeed;
 		m_fovAngle = ENGINE_CLAMP_F(m_fovAngle, 1.0f, 45.0f);
-
-		// Reset the state of the scroll wheel to check for up or down scrolls on the next frame.
-		inputManager.ResetMouseScrollWheelValue();
 	}
 }
 

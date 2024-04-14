@@ -15,7 +15,7 @@ public:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	void Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd);
-	void ProcessInput();
+	void ProcessMessages();
 	void Shutdown();
 
 	HWND GetWindowHandle() const { return m_windowHandle; }
@@ -52,9 +52,10 @@ public:
 
 private:
 	void Setup();
-	void ProcessInput();
+	void ProcessMessages();
 	void Update();
 	void Render();
+	void EndFrame();
 
 	float ComputeDeltaTime();
 

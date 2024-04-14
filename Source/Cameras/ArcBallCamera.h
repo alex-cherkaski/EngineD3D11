@@ -27,15 +27,13 @@ private:
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 
-	XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f };
-
 	XMFLOAT3 m_targetPosition = { 0.0f, 0.0f, 0.0f };
 
 	XMINT2 m_lastMousePosition = { 0, 0 };
 
 	float m_fovAngle = 45.0f;
 
-	float m_angularSpeed = 1000.0f;
+	float m_angularSpeed = 250.0f;
 	float m_zoomSpeed = 3000.0f;
 };
 

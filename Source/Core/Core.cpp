@@ -153,7 +153,7 @@ void Window::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ in
 	ShowWindow(m_windowHandle, nShowCmd);
 }
 
-void Window::ProcessInput()
+void Window::ProcessMessages()
 {
 	// Process window messages.
 	MSG windowMessage = { nullptr };
@@ -268,9 +268,10 @@ void Engine::Run()
 	Setup();
 	while (m_isRunning)
 	{
-		ProcessInput();
+		ProcessMessages();
 		Update();
 		Render();
+		EndFrame();
 	}
 }
 
@@ -289,17 +290,17 @@ void Engine::Setup()
 	m_isRunning = true;
 }
 
-void Engine::ProcessInput()
+void Engine::ProcessMessages()
 {
-	Window::GetInstanceWrite().ProcessInput();
+	Window::GetInstanceWrite().ProcessMessages();
 }
 
 void Engine::Update()
 {
 	const float delatTime = ENGINE_CLAMP_F(ComputeDeltaTime(), 0.0f, 0.05f);
 
-	FirstPersonCamera& camera = FirstPersonCamera::GetInstanceWrite();
-	camera.Update(delatTime);
+	FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceWrite();
+	firstPersonCamera.Update(delatTime);
 
 	ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
 	arcBallCamera.Update(delatTime);
@@ -309,6 +310,15 @@ void Engine::Render()
 {
 	static Renderer& renderer = Renderer::GetInstanceWrite();
 	renderer.Render();
+}
+
+void Engine::EndFrame()
+{
+	// Reset the keyboard and mouse states for the next frame.
+	InputManager& inputManager = InputManager::GetInstanceWrite();
+	inputManager.ResetKeyboardState();
+	inputManager.ResetMouseScrollWheelValue();	// Calling this earlier prevents the mouse state from being updated this frame.
+	inputManager.SignalMouseEndOfInputFrame();
 }
 
 float Engine::ComputeDeltaTime()
@@ -727,7 +737,8 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	m_id3d11DeviceContext->IASetPrimitiveTopology(gpuModelData.PrimitiveTopology);
 
 	// Update the world matrix constant data.
-	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
+	//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
+	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.0f);
 	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
 	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
 		coreObject.GetWorldMatrix(),
