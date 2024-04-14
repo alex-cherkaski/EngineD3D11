@@ -15,6 +15,12 @@ public:
 	void SetTargetPosition(const XMFLOAT3& targetPosition) { m_targetPosition = targetPosition; }
 	const XMFLOAT3& GetTargetPosition() const { return m_targetPosition; }
 
+	float GetAngularSpeed() const { return m_angularSpeed; }
+	void SetAngularSpeed(float angularSpeed) { m_angularSpeed = angularSpeed; }
+
+	float GetZoomSpeed() const { return m_zoomSpeed; }
+	void SetZoomSpeed(float zoomSpeed) { m_zoomSpeed = zoomSpeed; }
+
 private:
 	void UpdatePosition(float deltaTime);
 	void UpdateZoom(float deltaTime);

@@ -50,6 +50,7 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 	float yaw = 0.0f;
 	float pitch = 0.0f;
 
+	// Check for changes in pitch.
 	if (mouseState.leftButton && deltaY)
 	{
 		// Calculate if we are rotating clockwise or counter-clockwise.
@@ -59,6 +60,7 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 		pitch = direction * deltaTime * m_angularSpeed;
 	}
 
+	// Check for changes in yaw.
 	if (mouseState.leftButton && deltaX)
 	{
 		// Calculate if we are rotating clockwise or counter-clockwise.
