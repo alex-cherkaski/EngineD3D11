@@ -6,6 +6,7 @@
 #include "CoreGPUDataManager.h"
 #include "InputManager/InputManager.h"
 #include "Logger/Logger.h"
+#include "Cameras/ArcBallCamera.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -283,6 +284,7 @@ void Engine::Shutdown()
 void Engine::Setup()
 {
 	CoreObjectManager::GetInstanceWrite().Initialize();
+	ArcBallCamera::GetInstanceWrite().SetTargetPosition({ 0.0f, 0.0f, 6.0f });
 
 	m_isRunning = true;
 }
@@ -298,6 +300,9 @@ void Engine::Update()
 
 	FirstPersonCamera& camera = FirstPersonCamera::GetInstanceWrite();
 	camera.Update(delatTime);
+
+	ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
+	arcBallCamera.Update(delatTime);
 }
 
 void Engine::Render()
@@ -692,7 +697,8 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
 
 	// Retrieve the camera to query for view and projection matrices.
-	const FirstPersonCamera& camera = FirstPersonCamera::GetInstanceRead();
+	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
 
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);
@@ -737,7 +743,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the view matrix constant data.
-	const XMMATRIX viewMatrix = XMMatrixTranspose(camera.GetViewMatrix());
+	const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
@@ -748,7 +754,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the projection matrix constant data.
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(camera.GetProjectionMatrix());
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_projectionMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,									// Index of the subresource we want to update.

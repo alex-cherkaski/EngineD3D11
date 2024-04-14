@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Cameras\ArcBallCamera.cpp" />
     <ClCompile Include="Source\Constants\Math.cpp" />
     <ClCompile Include="Source\InputManager\InputManager.cpp" />
     <ClCompile Include="Source\Cameras\FirstPersonCamera.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="Source\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Cameras\ArcBallCamera.h" />
     <ClInclude Include="Source\Constants\Math.h" />
     <ClInclude Include="Source\InputManager\InputManager.h" />
     <ClInclude Include="Source\Cameras\FirstPersonCamera.h" />

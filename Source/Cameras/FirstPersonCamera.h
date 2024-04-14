@@ -8,6 +8,7 @@ class FirstPersonCamera
 
 public:
 	void Update(float deltaTime);
+
 	XMMATRIX GetViewMatrix() const;
 	XMMATRIX GetProjectionMatrix() const;
 

@@ -15,7 +15,6 @@
 	private: \
 		CLASS() = default; \
 		~CLASS() = default; \
-	\
 	private: \
 		static CLASS& GetInstance() \
 		{ \
