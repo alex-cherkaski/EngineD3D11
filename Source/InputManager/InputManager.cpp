@@ -12,4 +12,5 @@ void InputManager::Initialize()
 	m_keyboard = std::make_unique<Keyboard>();
 	m_mouse = std::make_unique<Mouse>();
 	m_mouse->SetWindow(windowHandle);
+	m_gamePad = std::make_unique<GamePad>();
 }

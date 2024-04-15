@@ -36,6 +36,7 @@ using namespace DirectX;
 #include "Includes/DirectXTK/DDSTextureLoader.h"
 #include "Includes/DirectXTK/Keyboard.h"
 #include "Includes/DirectXTK/Mouse.h"
+#include "Includes/DirectXTK/GamePad.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
