@@ -36,7 +36,7 @@ private:
 
 	XMINT2 m_lastMousePosition = { 0, 0 };
 
-	float m_linearSpeed = 500.0f;
+	float m_linearSpeed = 5.0f;
 	float m_angularSpeed = 90.0f; // In degrees.
 	float m_zoomSpeed = 3000.0f;
 	float m_fovAngle = 45.0f;

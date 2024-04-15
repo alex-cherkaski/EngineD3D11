@@ -1,4 +1,5 @@
 #include "PCH.h"
+#include "Cameras/ArcBallCamera.h"
 #include "Cameras/FirstPersonCamera.h"
 #include "Core.h"
 #include "CoreObject.h"
@@ -6,7 +7,6 @@
 #include "CoreGPUDataManager.h"
 #include "InputManager/InputManager.h"
 #include "Logger/Logger.h"
-#include "Cameras/ArcBallCamera.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -268,7 +268,7 @@ void Engine::Run()
 	Setup();
 	while (m_isRunning)
 	{
-		ProcessMessages();
+		ProcessInput();
 		Update();
 		Render();
 		EndFrame();
@@ -290,7 +290,7 @@ void Engine::Setup()
 	m_isRunning = true;
 }
 
-void Engine::ProcessMessages()
+void Engine::ProcessInput()
 {
 	Window::GetInstanceWrite().ProcessMessages();
 }
@@ -316,7 +316,7 @@ void Engine::EndFrame()
 {
 	// Reset the keyboard and mouse states for the next frame.
 	InputManager& inputManager = InputManager::GetInstanceWrite();
-	inputManager.ResetKeyboardState();
+	//inputManager.ResetKeyboardState();		// Reseting the keyboard state turns the camera movement very choppy.
 	inputManager.ResetMouseScrollWheelValue();	// Calling this earlier prevents the mouse state from being updated this frame.
 	inputManager.SignalMouseEndOfInputFrame();
 }

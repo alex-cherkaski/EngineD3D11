@@ -39,7 +39,7 @@ private:
 
 	float m_fovAngle = 45.0f;
 
-	float m_angularSpeed = 250.0f;
+	float m_angularSpeed = 90.0f; // In degrees.
 	float m_zoomSpeed = 3000.0f;
 };
 

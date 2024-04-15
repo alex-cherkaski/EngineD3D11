@@ -52,7 +52,7 @@ public:
 
 private:
 	void Setup();
-	void ProcessMessages();
+	void ProcessInput();
 	void Update();
 	void Render();
 	void EndFrame();
