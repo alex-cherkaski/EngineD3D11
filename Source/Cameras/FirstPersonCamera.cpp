@@ -5,17 +5,17 @@
 
 void FirstPersonCamera::Update(float deltaTime)
 {
+	UpdateTranslation(deltaTime);
 	UpdateRotation(deltaTime);
-	UpdatePosition(deltaTime);
 	UpdateZoom(deltaTime);
 }
 
 XMMATRIX FirstPersonCamera::GetViewMatrix() const
 {
 	// Retrieve the camera position and relevant basis vectors.
-	const XMVECTOR position = XMLoadFloat3(&m_position);
-	const XMVECTOR forward = XMLoadFloat3(&m_forward);
-	const XMVECTOR up = XMLoadFloat3(&m_up);
+	const XMVECTOR position = { m_transform._41, m_transform._42, m_transform._43, m_transform._44 };
+	const XMVECTOR forward = { m_transform._31, m_transform._32, m_transform._33, m_transform._34 };
+	const XMVECTOR up = { m_transform._21, m_transform._22, m_transform._23, m_transform._24 };
 
 	// Compute the look at direction of the camera.
 	const XMVECTOR lookAtTarget = position + forward;
@@ -47,6 +47,10 @@ void FirstPersonCamera::UpdateRotation(float deltaTime)
 	const int deltaX = mouseState.x - m_lastMousePosition.x;
 	const int deltaY = mouseState.y - m_lastMousePosition.y;
 
+	// Variables to record changes to the pitch and yaw of the camera for this frame.
+	float pitch = 0.0f;
+	float yaw = 0.0f;
+
 	// Check for changes in camera pitch.
 	if (mouseState.leftButton && deltaY)
 	{
@@ -54,7 +58,7 @@ void FirstPersonCamera::UpdateRotation(float deltaTime)
 		const int_fast8_t pitchDirection = mouseState.y < m_lastMousePosition.y ? 1 : -1;
 
 		// Update the amount of pitch the camera should have.
-		m_rotation.x += deltaTime * pitchDirection * m_angularSpeed;
+		pitch += deltaTime * pitchDirection * m_angularSpeed;
 	}
 
 	// Check for changes in camera yaw.
@@ -64,61 +68,62 @@ void FirstPersonCamera::UpdateRotation(float deltaTime)
 		const int_fast8_t yawDirection = mouseState.x < m_lastMousePosition.x ? -1 : 1;
 
 		// Update the amount of yaw the camera should have.
-		m_rotation.y += deltaTime * yawDirection * m_angularSpeed;
+		yaw += deltaTime * yawDirection * m_angularSpeed;
 	}
 
 	// If there was a change in camera pitch or yaw update camera basis vectors.
 	if (mouseState.leftButton && (deltaY || deltaX))
 	{
-		// Create the rotation matrix about the x-axis.
+		// Translation matrix that will move the camera back to local space.
+		const XMMATRIX localMatrix = XMMatrixTranslation(-m_transform._41, -m_transform._42, -m_transform._43);
+
+		// Rotation matrix that will update the camera rotation.
 		const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(m_rotation.x),
-			XMConvertToRadians(m_rotation.y),
-			XMConvertToRadians(m_rotation.z));
+			XMConvertToRadians(pitch),
+			XMConvertToRadians(yaw),
+			0.0f
+		);
 
-		// Construct a SIMD version of the vector, rotate it, and write back the rotated right vector.
-		XMVECTOR right = XMLoadFloat3(&RIGHT_VECTOR);
-		right = XMVector3Transform(right, rotationMatrix);
-		XMStoreFloat3(&m_right, right);
+		// Translation matrix that will move the camera back to world space.
+		const XMMATRIX worldMatrix = XMMatrixTranslation(m_transform._41, m_transform._42, m_transform._43);
 
-		// Construct a SIMD version of the vector, rotate it, and write back the rotated right vector.
-		XMVECTOR up = XMLoadFloat3(&UP_VECTOR);
-		up = XMVector3Transform(up, rotationMatrix);
-		XMStoreFloat3(&m_up, up);
-
-		// Construct a SIMD version of the vector, rotate it, and write back the rotated forward vector.
-		XMVECTOR forward = XMLoadFloat3(&FORWARD_VECTOR);
-		forward = XMVector3Transform(forward, rotationMatrix);
-		XMStoreFloat3(&m_forward, forward);
+		// Apply the above transformations in order to rotate the camera about its own origin.
+		XMMATRIX transform = XMLoadFloat4x4(&m_transform);
+		transform *= localMatrix * rotationMatrix * worldMatrix;
+		XMStoreFloat4x4(&m_transform, transform);
 	}
 
 	// Update the last mouse position for this frame.
 	m_lastMousePosition = { mouseState.x, mouseState.y };
 }
 
-void FirstPersonCamera::UpdatePosition(float deltaTime)
+void FirstPersonCamera::UpdateTranslation(float deltaTime)
 {
 	// Get the keyboard state from the input manager.
 	const InputManager& inputManager = InputManager::GetInstanceRead();
 	const Keyboard::State keyboardState = inputManager.GetKeyboardStateRead();
 
-	// Retrieve the relevant camera components.
-	XMVECTOR position = XMLoadFloat3(&m_position);
-	const XMVECTOR forward = XMLoadFloat3(&m_forward);
-	const XMVECTOR right = XMLoadFloat3(&m_right);
+	// Construct the SIMD the camera transform and translation matrices to do the updating.
+	XMMATRIX transform = XMLoadFloat4x4(&m_transform);
+	XMMATRIX translation = XMMatrixIdentity();
 
 	// Update the camera position if the relevant key was pressed.
 	if (keyboardState.W)
-		position += deltaTime * m_linearSpeed * forward;
+		translation.r[3] += deltaTime * m_linearSpeed * transform.r[2];
 	if (keyboardState.S)
-		position += deltaTime * (-1) * m_linearSpeed * forward;
+		translation.r[3] += (-1) * deltaTime * m_linearSpeed * transform.r[2];
 	if (keyboardState.D)
-		position += deltaTime * m_linearSpeed * right;
+		translation.r[3] += deltaTime * m_linearSpeed * transform.r[0];
 	if (keyboardState.A)
-		position += deltaTime * (-1) * m_linearSpeed * right;
+		translation.r[3] += (-1) * deltaTime * m_linearSpeed * transform.r[0];
 
-	// Write back the updated camera position.
-	XMStoreFloat3(&m_position, position);
+	// If there was any movement related input registered for this frame...
+	if (keyboardState.W || keyboardState.S || keyboardState.D || keyboardState.A)
+	{
+		// Apply the translation matrix to the camera world transform.
+		transform *= translation;
+		XMStoreFloat4x4(&m_transform, transform);
+	}
 }
 
 void FirstPersonCamera::UpdateZoom(float deltaTime)

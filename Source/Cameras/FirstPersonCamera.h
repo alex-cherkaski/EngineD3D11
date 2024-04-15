@@ -23,20 +23,20 @@ public:
 
 private:
 	void UpdateRotation(float deltaTime);
-	void UpdatePosition(float deltaTime);
+	void UpdateTranslation(float deltaTime);
 	void UpdateZoom(float deltaTime);
 
 private:
-	XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
-	XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f };
-
-	XMFLOAT3 m_right = RIGHT_VECTOR;
-	XMFLOAT3 m_up = UP_VECTOR;
-	XMFLOAT3 m_forward = FORWARD_VECTOR;
+	XMFLOAT4X4 m_transform = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
 
 	XMINT2 m_lastMousePosition = { 0, 0 };
 
-	float m_linearSpeed = 5.0f;
+	float m_linearSpeed = 500.0f;
 	float m_angularSpeed = 90.0f; // In degrees.
 	float m_zoomSpeed = 3000.0f;
 	float m_fovAngle = 45.0f;
