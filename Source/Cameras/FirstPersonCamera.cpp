@@ -13,9 +13,9 @@ void FirstPersonCamera::Update(float deltaTime)
 XMMATRIX FirstPersonCamera::GetViewMatrix() const
 {
 	// Retrieve the camera position and relevant basis vectors.
-	const XMVECTOR position = XMLoadFloat3(&m_position);
-	const XMVECTOR forward = XMLoadFloat3(&m_forward);;
-	const XMVECTOR up = XMLoadFloat3(&m_up);
+	const XMVECTOR position = { m_transform._41, m_transform._42, m_transform._43, 0.0f };
+	const XMVECTOR forward = { m_transform._31, m_transform._32, m_transform._33, 0.0f };
+	const XMVECTOR up = { m_transform._21, m_transform._22, m_transform._23, 0.0f };
 
 	// Compute the look at direction of the camera.
 	const XMVECTOR lookAtTarget = position + forward;
@@ -63,23 +63,27 @@ void FirstPersonCamera::UpdateRotation(float deltaTime)
 	{
 		// Update the cached camera rotation based on the new mouse or game pad input.
 		if (mouseState.leftButton && deltaY > 0 || yRightStickPositive)
-			m_rotation.x += (-1) * deltaTime * m_angularSpeed;
+			m_pitch -= deltaTime * m_angularSpeed;
 		if (mouseState.leftButton && deltaY < 0 || yRightStickNegative)
-			m_rotation.x += deltaTime * m_angularSpeed;
+			m_pitch += deltaTime * m_angularSpeed;
 		if (mouseState.leftButton && deltaX > 0 || xRightStickPositive)
-			m_rotation.y += deltaTime * m_angularSpeed;
+			m_yaw += deltaTime * m_angularSpeed;
 		if (mouseState.leftButton && deltaX < 0 || xRightStickNegative)
-			m_rotation.y += (-1) * deltaTime * m_angularSpeed;
+			m_yaw -= deltaTime * m_angularSpeed;
 
-		// Construct a rotation matrix and rotate the three camera component vectors to match the camera's orientation.
-		const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z);
-		XMStoreFloat3(&m_forward, XMVector4Transform(FORWARD_VECTOR4_V, rotationMatrix));
-		XMStoreFloat3(&m_right, XMVector4Transform(RIGHT_VECTOR4_V, rotationMatrix));
-		XMStoreFloat3(&m_up, XMVector4Transform(UP_VECTOR4_V, rotationMatrix));
+		// Construct the rotation and world matrices to transform the camera.
+		const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_pitch), XMConvertToRadians(m_yaw), 0.0f);
+		const XMMATRIX worldMatrix = XMMatrixTranslation(m_transform._41, m_transform._42, m_transform._43);
+
+		// Update the camera transform based on the camera position, pitch, and yaw.
+		XMMATRIX transform = XMMatrixIdentity();
+		transform *= rotationMatrix;
+		transform *= worldMatrix;
+		XMStoreFloat4x4(&m_transform, transform);
+
+		// Update the last mouse position for this frame.
+		m_lastMousePosition = { mouseState.x, mouseState.y };
 	}
-
-	// Update the last mouse position for this frame.
-	m_lastMousePosition = { mouseState.x, mouseState.y };
 }
 
 void FirstPersonCamera::UpdateTranslation(float deltaTime)
@@ -97,28 +101,26 @@ void FirstPersonCamera::UpdateTranslation(float deltaTime)
 
 	// Record if a game pad stick was moved or a keyboard button was pressed.
 	const bool movementKeyPressed = keyboardState.W || keyboardState.S || keyboardState.D || keyboardState.A;
-	const bool leftStickMoved = xLeftStickPositive || xLeftStickNegative || yLeftStickPositive || yLeftStickNegative;
+	const bool leftStickMoved = gamePadState.IsConnected() && (xLeftStickPositive || xLeftStickNegative || yLeftStickPositive || yLeftStickNegative);
 
 	// If there was any movement related input registered for this frame...
 	if (movementKeyPressed || leftStickMoved)
 	{
-		// Create the relevant SIMD vectors to operate on.
-		XMVECTOR position = XMLoadFloat3(&m_position);
-		const XMVECTOR forward = XMLoadFloat3(&m_forward);
-		const XMVECTOR right = XMLoadFloat3(&m_right);
+		// Construct a SIMD camera transform matrix to update.
+		XMMATRIX transform = XMLoadFloat4x4(&m_transform);
 
 		// Update the camera position if the relevant key was pressed.
 		if (keyboardState.W || yLeftStickPositive)
-			position += deltaTime * m_linearSpeed * forward;
+			transform.r[3] += deltaTime * m_linearSpeed * transform.r[2];
 		if (keyboardState.S || yLeftStickNegative)
-			position += (-1) * deltaTime * m_linearSpeed * forward;
+			transform.r[3] -= deltaTime * m_linearSpeed * transform.r[2];
 		if (keyboardState.D || xLeftStickPositive)
-			position += deltaTime * m_linearSpeed * right;
+			transform.r[3] += deltaTime * m_linearSpeed * transform.r[0];
 		if (keyboardState.A || xLeftStickNegative)
-			position += (-1) * deltaTime * m_linearSpeed * right;
+			transform.r[3] -= deltaTime * m_linearSpeed * transform.r[0];
 
-		// Write back the new SIMD position value.
-		XMStoreFloat3(&m_position, position);
+		// Write back the updated camera transform matrix.
+		XMStoreFloat4x4(&m_transform, transform);
 	}
 }
 

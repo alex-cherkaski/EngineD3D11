@@ -1,5 +1,4 @@
 #include "PCH.h"
-#include "Cameras/ArcBallCamera.h"
 #include "Cameras/FirstPersonCamera.h"
 #include "Core.h"
 #include "CoreObject.h"
@@ -285,7 +284,6 @@ void Engine::Shutdown()
 void Engine::Setup()
 {
 	CoreObjectManager::GetInstanceWrite().Initialize();
-	ArcBallCamera::GetInstanceWrite().SetTargetPosition({ 0.0f, 0.0f, 6.0f });
 
 	m_isRunning = true;
 }
@@ -301,9 +299,6 @@ void Engine::Update()
 
 	FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceWrite();
 	firstPersonCamera.Update(delatTime);
-
-	ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
-	arcBallCamera.Update(delatTime);
 }
 
 void Engine::Render()
@@ -317,7 +312,7 @@ void Engine::EndFrame()
 	// Reset the keyboard and mouse states for the next frame.
 	InputManager& inputManager = InputManager::GetInstanceWrite();
 	//inputManager.ResetKeyboardState();		// Reseting the keyboard state turns the camera movement very choppy.
-	inputManager.ResetMouseScrollWheelValue();	// Calling this earlier prevents the mouse state from being updated this frame.
+	inputManager.ResetMouseScrollWheelValue();	// Calling this earlier prevents the mouse state from being updated this frame in multiple places.
 	inputManager.SignalMouseEndOfInputFrame();
 }
 
@@ -708,7 +703,6 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 
 	// Retrieve the camera to query for view and projection matrices.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
 
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexData);

@@ -30,19 +30,22 @@ private:
 	void UpdateZoom(float deltaTime);
 
 private:
-	XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
-	XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f };
-
-	XMFLOAT3 m_forward = FORWARD_VECTOR3_F;
-	XMFLOAT3 m_right = RIGHT_VECTOR3_F;
-	XMFLOAT3 m_up = UP_VECTOR3_F;
+	XMFLOAT4X4 m_transform = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
 
 	XMINT2 m_lastMousePosition = { 0, 0 };
 
+	float m_pitch = 0.0f;
+	float m_yaw = 0.0f;
+
 	float m_linearSpeed = 5.0f;
-	float m_angularSpeed = 3.0f; // In degrees.
+	float m_angularSpeed = 90.0f; // In degrees.
 	float m_mouseZoomSpeed = 3000.0f;
 	float m_triggerZoomSpeed = 30.0f;
-	float m_fovAngle = 45.0f;
+	float m_fovAngle = 45.0f; // In degrees.
 };
 
