@@ -37,6 +37,7 @@ using namespace DirectX;
 #include "Includes/DirectXTK/Keyboard.h"
 #include "Includes/DirectXTK/Mouse.h"
 #include "Includes/DirectXTK/GamePad.h"
+#include "Includes/DirectXMesh/WaveFrontReader.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")

@@ -13,6 +13,7 @@ public:
 	void InitializeSprites();
 	void InitializeUITexts();
 	void Initialize3DModels();
+	void Initialize3DMeshes();
 
 	const std::vector<CoreObject>& GetCoreSpritesRead() const { return m_coreSprites; }
 	std::vector<CoreObject>& GetCoreSpritesWrite() { return m_coreSprites; }

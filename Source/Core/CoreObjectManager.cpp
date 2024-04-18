@@ -3,12 +3,14 @@
 #include "CoreGPUDataManager.h"
 #include "CoreObject.h"
 #include "CoreObjectManager.h"
+#include "MeshManager/MeshManager.h"
 
 void CoreObjectManager::Initialize()
 {
 	//InitializeSprites();
 	//InitializeUITexts();
-	Initialize3DModels();
+	//Initialize3DModels();
+	Initialize3DMeshes();
 }
 
 void CoreObjectManager::InitializeSprites()
@@ -108,6 +110,79 @@ void CoreObjectManager::InitializeUITexts()
 
 void CoreObjectManager::Initialize3DModels()
 {
+	//// Generate a model data struct to fill with all the GPU relevant handles.
+	//CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
+	//CoreObject coreObject(gpuDataManager.GenerateGUID());
+	//GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
+
+	//modelData.GPUTextureDatas.resize(16);
+
+	//// Set the shader of the core object.
+	//modelData.VertexShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
+	//modelData.PixelShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
+	//modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
+	//modelData.GPUTextureDatas[1].TextureFilePath = L"./Resources/Images/PNG_transparency_demonstration_1.png";
+
+	//// Set the vertex data of the core object
+	//modelData.Vertices = {
+	//	{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	//	{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	//	{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }
+	//};
+
+	//// Set the index data of the core object.
+	//modelData.Indices = {
+	//	3, 1, 0, 2, 1, 3,
+	//	6, 4, 5, 7, 4, 6,
+	//	11, 9, 8, 10, 9, 11,
+	//	14, 12, 13, 15, 12, 14,
+	//	19, 17, 16, 18, 17, 19,
+	//	22, 20, 21, 23, 20, 22
+	//};
+
+	//Renderer& renderer = Renderer::GetInstanceWrite();
+
+	//// Create the vertex relevant GPU data.
+	//renderer.CreateDefaultVertexBuffer(modelData);
+	//renderer.CreateIndexBuffer(modelData);
+	//renderer.CreateVertexShader(modelData);
+	//renderer.CreateInputLayout(modelData);
+
+	//// Create the pixel relevant GPU data.
+	//renderer.CreatePixelShader(modelData);
+	//renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
+	//renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[1]);
+
+	//// Set the output merger stage topology settings.
+	//modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	//// Add an instance of the core object to run with.
+	//m_core3DModels.push_back(coreObject);
+}
+
+void CoreObjectManager::Initialize3DMeshes()
+{
 	// Generate a model data struct to fill with all the GPU relevant handles.
 	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
 	CoreObject coreObject(gpuDataManager.GenerateGUID());
@@ -116,48 +191,24 @@ void CoreObjectManager::Initialize3DModels()
 	modelData.GPUTextureDatas.resize(16);
 
 	// Set the shader of the core object.
-	modelData.VertexShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
-	modelData.PixelShaderPath = L"./Source/Shaders/MultiTexturingShader.hlsl";
-	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Images/Stone_Wall.jpg";
-	modelData.GPUTextureDatas[1].TextureFilePath = L"./Resources/Images/PNG_transparency_demonstration_1.png";
+	modelData.VertexShaderPath = L"./Source/Shaders/LightingShader.hlsl";
+	modelData.PixelShaderPath = L"./Source/Shaders/LightingShader.hlsl";
+	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Textures/capsule0.jpg";
+
+	const MeshManager& meshManager = MeshManager::GetInstanceRead();
+	const Mesh& mesh = meshManager.GetMesh(L"Cube");
 
 	// Set the vertex data of the core object
-	modelData.Vertices = {
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }
-	};
+	modelData.Vertices.resize(mesh.vertices.size());
+	for (size_t i = 0; i < mesh.vertices.size(); ++i)
+	{
+		modelData.Vertices[i].Position = mesh.vertices[i].position;
+		modelData.Vertices[i].Normal = mesh.vertices[i].normal;
+		modelData.Vertices[i].Texture = mesh.vertices[i].textureCoordinate;
+	}
 
 	// Set the index data of the core object.
-	modelData.Indices = {
-		3, 1, 0, 2, 1, 3,
-		6, 4, 5, 7, 4, 6,
-		11, 9, 8, 10, 9, 11,
-		14, 12, 13, 15, 12, 14,
-		19, 17, 16, 18, 17, 19,
-		22, 20, 21, 23, 20, 22
-	};
+	modelData.Indices = mesh.indices;
 
 	Renderer& renderer = Renderer::GetInstanceWrite();
 
@@ -170,7 +221,6 @@ void CoreObjectManager::Initialize3DModels()
 	// Create the pixel relevant GPU data.
 	renderer.CreatePixelShader(modelData);
 	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
-	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[1]);
 
 	// Set the output merger stage topology settings.
 	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -214,12 +264,12 @@ void CoreObjectManager::SetUIText(GPUModelData& gpuModelData)
 		const float textureEndX = (currentCharMultiple * CHAR_WIDTH + CHAR_WIDTH) / TEXTURE_WIDTH;
 
 		// Create the vertex element data.
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
+		/*gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
 		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexStartY, 0.5f), XMFLOAT2(textureEndX,   TEXTURE_END_Y) });
 		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 0.5f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
 		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexStartY, 0.5f), XMFLOAT2(textureStartX, TEXTURE_END_Y) });
 		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexStartX, vertexEndY, 0.5f),	  XMFLOAT2(textureStartX, TEXTURE_START_Y) });
-		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });
+		gpuModelData.Vertices.push_back({ XMFLOAT3(vertexEndX,   vertexEndY, 0.5f),   XMFLOAT2(textureEndX,   TEXTURE_START_Y) });*/
 	}
 }
 

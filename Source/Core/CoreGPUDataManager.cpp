@@ -8,7 +8,7 @@ GUID CoreGPUDataManager::GenerateGUID() const
 	const RPC_STATUS createUUIDStatus = UuidCreateSequential(&result);
 
 	// Error check GUID generation and return the result.
-	ENGINE_ASSERT(createUUIDStatus == RPC_S_OK, "Failed to generated adequate UUID.");
+	ENGINE_ASSERT_W(createUUIDStatus == RPC_S_OK, "Failed to generated adequate UUID.");
 	return result;
 }
 
@@ -24,7 +24,7 @@ GPUModelData& CoreGPUDataManager::GetGPUModelDataWrite(GUID guid)
 	const unsigned short guidHash = UuidHash(&guid, &guidHashStatus);
 
 	// Error check hash generation and retrieve the pointer.
-	ENGINE_ASSERT(guidHashStatus == RPC_S_OK, "Failed to generate adequate hash for GUID.");
+	ENGINE_ASSERT_W(guidHashStatus == RPC_S_OK, "Failed to generate adequate hash for GUID.");
 	return m_gpuModelDataMap[guidHash];
 }
 

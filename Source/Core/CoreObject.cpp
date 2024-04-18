@@ -4,7 +4,7 @@
 
 void CoreObject::SetGPUDataGUID(const GUID& gpuDataGUID)
 {
-	ENGINE_ASSERT(GUID_IS_ZERO(m_gpuDataGUID), "Attempting to overwrite non-zero core object GPU data GUID.");
+	ENGINE_ASSERT_W(GUID_IS_ZERO(m_gpuDataGUID), "Attempting to overwrite non-zero core object GPU data GUID.");
 	m_gpuDataGUID = gpuDataGUID;
 }
 

@@ -48,6 +48,9 @@
     <ClCompile Include="Source\Cameras\ArcBallCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MeshManager\MeshManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Core.h">
@@ -86,6 +89,12 @@
     <ClInclude Include="Source\Cameras\ArcBallCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\MeshManager\MeshManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\DirectXMesh\WaveFrontReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Source\Shaders\SingleBlendTextureShader.hlsl" />
@@ -95,6 +104,7 @@
     <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl" />
     <FxCompile Include="Source\Shaders\ColorShiftingShader.hlsl" />
     <FxCompile Include="Source\Shaders\MultiTexturingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\LightingShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />

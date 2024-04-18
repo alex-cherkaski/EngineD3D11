@@ -1,10 +1,11 @@
 #pragma once
 #include "PCH.h"
 
-struct VertexData
+struct VertexAttributes
 {
-	XMFLOAT3 m_position = { NAN, NAN, NAN };
-	XMFLOAT2 m_texture = { NAN, NAN };
+	XMFLOAT3 Position = { NAN, NAN, NAN };
+	XMFLOAT3 Normal = { NAN, NAN, NAN };
+	XMFLOAT2 Texture = { NAN, NAN };
 };
 
 struct GPUTextureData
@@ -25,7 +26,7 @@ struct GPUModelData
 
 	std::string Message;
 
-	std::vector<VertexData> Vertices;
+	std::vector<VertexAttributes> Vertices;
 	std::vector<UINT> Indices;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> VertexBuffer = nullptr;

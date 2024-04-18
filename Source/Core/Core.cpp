@@ -7,6 +7,7 @@
 #include "CoreGPUDataManager.h"
 #include "InputManager/InputManager.h"
 #include "Logger/Logger.h"
+#include "MeshManager/MeshManager.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -183,7 +184,7 @@ void Window::RegisterEngineWindowClass(_In_ HINSTANCE hInstance, _In_ LPWSTR lpC
 
 	// Attempt to register the window class and error check its creation.
 	const ATOM registerResult = RegisterClassEx(&windowClass);
-	ENGINE_ASSERT(registerResult != 0, "Failed to register window class!");
+	ENGINE_ASSERT_W(registerResult != 0, "Failed to register window class!");
 }
 
 void Window::CreateEngineWindow(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
@@ -206,7 +207,7 @@ void Window::CreateEngineWindow(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine,
 	);
 
 	// Error check window creation.
-	ENGINE_ASSERT(m_windowHandle, "Failed to create Engine window.\n");
+	ENGINE_ASSERT_W(m_windowHandle, "Failed to create Engine window.\n");
 }
 
 void Window::CalculateWindowDimensions()
@@ -245,7 +246,7 @@ void Engine::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ in
 
 	// Get the performance counter frequency.
 	const BOOL queryPerformanceFrequencyResult = QueryPerformanceFrequency(&m_performanceCounterFrequency);
-	ENGINE_ASSERT(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
+	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
 
 	// Set the thread's affinity to run on the same CPU core.
 	const HANDLE currentThreadHandle = GetCurrentThread();
@@ -256,7 +257,7 @@ void Engine::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ in
 	);
 
 	// Error check main thread affinity mask setting.
-	ENGINE_ASSERT(queryPerformanceFrequencyResult, "Failed to SetThreadAffinityMask.");
+	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to SetThreadAffinityMask.");
 
 	Logger::GetInstanceWrite().Initialize();
 	Window::GetInstanceWrite().Initialize(hInstance, lpCmdLine, nShowCmd);
@@ -284,6 +285,7 @@ void Engine::Shutdown()
 
 void Engine::Setup()
 {
+	MeshManager::GetInstanceWrite().Initialize();
 	CoreObjectManager::GetInstanceWrite().Initialize();
 	ArcBallCamera::GetInstanceWrite().SetTargetPosition({ 0.0f, 0.0f, 6.0f });
 
@@ -326,7 +328,7 @@ float Engine::ComputeDeltaTime()
 	// Get the performance counter value for the current frame.
 	LARGE_INTEGER currentPerformanceCounter = { };
 	const BOOL queryPerformanceCounterResult = QueryPerformanceCounter(&currentPerformanceCounter);
-	ENGINE_ASSERT(queryPerformanceCounterResult, "Failed to QueryPerformanceCounter.");
+	ENGINE_ASSERT_W(queryPerformanceCounterResult, "Failed to QueryPerformanceCounter.");
 
 	// Calculate the delta time.
 	const float deltaTime =
@@ -600,7 +602,7 @@ void Renderer::CreateViewPort()
 void Renderer::Clear()
 {
 	// Clear the back buffer through the render target view.
-	constexpr FLOAT clearColor[4] = { 0.09f, 0.09f, 0.09f, 1.0f };
+	constexpr FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_id3d11DeviceContext->ClearRenderTargetView(m_id3d11RenderTargetView.Get(), clearColor);
 
 	// Clear the depth stencil buffer through the render target view.
@@ -619,7 +621,7 @@ void Renderer::DrawSprites(const CoreObject& coreObject)
 	const GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataRead(coreObject.GetGPUDataGUID());
 
 	// Calculate each vertex element stride and position.
-	const UINT stride = sizeof(VertexData);
+	const UINT stride = sizeof(VertexAttributes);
 	const UINT offset = 0;
 
 	// Set the input layout for the current model
@@ -708,10 +710,10 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 
 	// Retrieve the camera to query for view and projection matrices.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
 
 	// Calculate each vertex element stride and position.
-	const UINT stride = sizeof(VertexData);
+	const UINT stride = sizeof(VertexAttributes);
 	const UINT offset = 0;
 
 	// Set the input layout for the current model
@@ -739,7 +741,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	// Update the world matrix constant data.
 	//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
 	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.0f);
-	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
+	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 3.0f);
 	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
 		coreObject.GetWorldMatrix(),
 		XMMatrixMultiply(rotationMatrix, translationMatrix)
@@ -754,7 +756,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the view matrix constant data.
-	const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
+	const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_viewMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
@@ -765,7 +767,7 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 
 	// Update the projection matrix constant data.
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_projectionMatrixBuffer.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,									// Index of the subresource we want to update.
@@ -834,6 +836,10 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 		m_id3d11DepthStencilView.Get()				// Optional pointer to depth stencil view interface.
 	);
 
+	D3D11_RASTERIZER_DESC desc = {};
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> r;
+	m_id3d11DeviceContext->RSGetState(r.GetAddressOf());
+
 	// Draw the model.
 	m_id3d11DeviceContext->DrawIndexed(
 		(UINT)gpuModelData.Indices.size(),	// The number of indices to draw.
@@ -854,7 +860,7 @@ void Renderer::CreateDefaultVertexBuffer(GPUModelData& gpuModelData)
 	D3D11_BUFFER_DESC vertexBufferDecription = { 0 };
 	vertexBufferDecription.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;								// How the buffer will be accessed.
 	vertexBufferDecription.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
-	vertexBufferDecription.ByteWidth = (UINT)(gpuModelData.Vertices.size() * sizeof(VertexData));	// The size of the buffer.
+	vertexBufferDecription.ByteWidth = (UINT)(gpuModelData.Vertices.size() * sizeof(VertexAttributes));	// The size of the buffer.
 
 	// Initialize the vertex buffer initial data struct.
 	D3D11_SUBRESOURCE_DATA initialBufferData = { nullptr };
@@ -879,7 +885,7 @@ void Renderer::CreateDynamicVertexBuffer(GPUModelData& gpuModelData)
 	vertexBufferDecriptor.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;									// How the buffer will be accessed.
 	vertexBufferDecriptor.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;			// What sort of access the CPU needs to the vertex buffer on the GPU.
 	vertexBufferDecriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
-	vertexBufferDecriptor.ByteWidth = (UINT)(6 * 24 * sizeof(VertexData));								// The size of the buffer.
+	vertexBufferDecriptor.ByteWidth = (UINT)(6 * 24 * sizeof(VertexAttributes));								// The size of the buffer.
 
 	// Attempt to create the vertex buffer.
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
@@ -968,11 +974,20 @@ void Renderer::CreateInputLayout(GPUModelData& gpuModelData)
 			0															// Instance data step rate. 0 for vertex data.
 		},
 		{
+			"NORMAL",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,					// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			(UINT)sizeof(VertexAttributes::Position),					// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		},
+		{
 			"TEXCOORD",													// The semantic name of the vertex element.
 			0,															// The semantic index of the vertex element.
 			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,						// The format of the semantic element.
 			0,															// The index of the vertex buffer for this element.
-			(UINT)sizeof(VertexData::m_position),						// The offset of this element in the vertex buffer.
+			(UINT)sizeof(VertexAttributes::Position) + (UINT)sizeof(VertexAttributes::Normal) ,					// The offset of this element in the vertex buffer.
 			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
 			0															// Instance data step rate. 0 for vertex data.
 		}
@@ -1178,13 +1193,13 @@ void Renderer::WriteUITextData(const CoreObject& coreObject)
 	ENGINE_ASSERT_HRESULT(mapResult);
 
 	// Get the vertex buffer data pointer.
-	VertexData* vertexData = (VertexData*)vertexBufferData.pData;
+	VertexAttributes* vertexData = (VertexAttributes*)vertexBufferData.pData;
 
 	// Copy the contents of the vertex data into the vertex buffer pointer.
 	for (UINT i = 0; i < gpuModelData.Vertices.size(); ++i)
 	{
-		vertexData[i].m_position = gpuModelData.Vertices[i].m_position;
-		vertexData[i].m_texture = gpuModelData.Vertices[i].m_texture;
+		vertexData[i].Position = gpuModelData.Vertices[i].Position;
+		vertexData[i].Texture = gpuModelData.Vertices[i].Texture;
 	}
 
 	// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.

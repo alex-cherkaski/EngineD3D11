@@ -4,7 +4,7 @@
 #include "Macros.h"
 
 class CoreObject;
-struct VertexData;
+struct VertexAttributes;
 struct GPUModelData;
 
 class Window final

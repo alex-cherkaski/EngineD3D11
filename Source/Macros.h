@@ -26,12 +26,25 @@
 		static CLASS& GetInstanceWrite() { return GetInstance(); } \
 	private:
 
-#define ENGINE_ASSERT(CONDITION, FORMAT, ...) \
+#define ENGINE_ASSERT_W(CONDITION, FORMAT, ...) \
 	if (!(CONDITION)) \
 	{ \
 		wchar_t buffer[1024] = { '\0' }; \
 		swprintf(buffer, ARRAYSIZE(buffer), TEXT(FORMAT), __VA_ARGS__); \
 		MessageBox(nullptr, buffer, TEXT("ERROR"), MB_OK); \
+		assert(false); \
+		exit(EXIT_FAILURE); \
+	}
+
+#define ENGINE_ASSERT_A(CONDITION, FORMAT, ...) \
+	if (!(CONDITION)) \
+	{ \
+		char buffer[1024] = { '\0' }; \
+		__pragma(warning(disable : 4996)) \
+		__pragma(warning(push)) \
+		sprintf(buffer, FORMAT, __VA_ARGS__); \
+		__pragma(warning(pop)) \
+		MessageBoxA(nullptr, buffer, "ERROR", MB_OK); \
 		assert(false); \
 		exit(EXIT_FAILURE); \
 	}
