@@ -193,10 +193,10 @@ void CoreObjectManager::Initialize3DMeshes()
 	// Set the shader of the core object.
 	modelData.VertexShaderPath = L"./Source/Shaders/LightingShader.hlsl";
 	modelData.PixelShaderPath = L"./Source/Shaders/LightingShader.hlsl";
-	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Textures/capsule0.jpg";
+	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Textures/spot_texture.png";
 
 	const MeshManager& meshManager = MeshManager::GetInstanceRead();
-	const Mesh& mesh = meshManager.GetMesh(L"Cube");
+	const Mesh& mesh = meshManager.GetMesh(L"Spot");
 
 	// Set the vertex data of the core object
 	modelData.Vertices.resize(mesh.vertices.size());

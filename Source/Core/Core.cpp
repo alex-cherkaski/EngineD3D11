@@ -550,7 +550,8 @@ void Renderer::CreateBlendState()
 {
 	// Initialize blend state descriptor struct.
 	D3D11_BLEND_DESC blendDescriptor = { 0 };
-	blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
+	//blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
+	blendDescriptor.RenderTarget[0].BlendEnable = FALSE;										// Is blending enabled.
 	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
 	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
 	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
