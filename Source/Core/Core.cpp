@@ -1058,8 +1058,11 @@ void Renderer::CreateConstantBuffers()
 void Renderer::UpdateCameraPositionConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
-	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const XMFLOAT3 position = firstPersonCamera.GetPosition();
+	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	//const XMFLOAT3 position = firstPersonCamera.GetPosition();
+
+	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	const XMFLOAT3& position = arcBallCamera.GetCameraPosition();
 
 	// Update the view matrix constant data.
 	m_id3d11DeviceContext->UpdateSubresource(
@@ -1084,7 +1087,7 @@ void Renderer::UpdateModelMatrixConstantBuffer(const CoreObject& coreObject)
 	// Update the world matrix constant data.
 //const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
 	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-90), 0.0f, 0.0f);
-	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 3.0f);
+	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
 	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
 		coreObject.GetWorldMatrix(),
 		XMMatrixMultiply(rotationMatrix, translationMatrix)
@@ -1109,8 +1112,11 @@ void Renderer::UpdateModelMatrixConstantBuffer(const CoreObject& coreObject)
 void Renderer::UpdateViewMatrixConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
-	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
+	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	//const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
+
+	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
 
 	// Update the view matrix constant data.
 	m_id3d11DeviceContext->UpdateSubresource(
@@ -1152,8 +1158,11 @@ void Renderer::UpdateProjectionMatrixConstantBuffer()
 	//);
 
 	// Retrieve the projection matrix from the current camera.
-	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
+	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	//const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
+
+	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
 
 	// Update the projection matrix constant buffer.
 	m_id3d11DeviceContext->UpdateSubresource(

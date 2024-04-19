@@ -11,21 +11,10 @@ void ArcBallCamera::Update(float deltaTime)
 
 XMMATRIX ArcBallCamera::GetViewMatrix() const
 {
-	// Compute the rotation matrix to rotate the camera position about the target position.
-	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_rotation.x), XMConvertToRadians(m_rotation.y), 0.0f);
-
-	// Retrieve the camera and target world positions to offset the camera position before performing the rotation.
-	XMVECTOR position = XMLoadFloat3(&m_position);
-	XMVECTOR target = XMLoadFloat3(&m_target);
-
-	// Translate the camera to target space, perform the rotation, and translate the camera back to world space.
-	position -= target;
-	position = XMVector3Transform(position, rotationMatrix);
-	position += target;
-
-	// Retrieve the camera position and relevant basis vectors.
-	const XMVECTOR forward = ComputeForward(position);
-	const XMVECTOR up = ComputeUp();
+	// Get the camera position and basis vectors to compute the look at matrix.
+	const XMVECTOR position = { m_transform._41, m_transform._42, m_transform._43 };
+	const XMVECTOR forward = { m_transform._31, m_transform._32, m_transform._33 };
+	const XMVECTOR up = { m_transform._21, m_transform._22, m_transform._23 };
 
 	// Compute the look at direction of the camera.
 	const XMVECTOR lookAtTarget = position + forward;
@@ -71,17 +60,47 @@ void ArcBallCamera::UpdatePosition(float deltaTime)
 	// If there was a change in camera pitch or yaw update camera basis vectors.
 	if (mouseButtonPressed || rightStickMoved)
 	{
-		// Update the cached camera rotation based on the new mouse or game pad input.
-		if (mouseState.leftButton && deltaY > 0 || yLeftStickPositive)
-			m_rotation.x -= deltaTime * m_angularSpeed;
-		if (mouseState.leftButton && deltaY < 0 || yLeftStickNegative)
-			m_rotation.x += deltaTime * m_angularSpeed;
-		if (mouseState.leftButton && deltaX > 0 || xLeftStickPositive)
-			m_rotation.y += deltaTime * m_angularSpeed;
-		if (mouseState.leftButton && deltaX < 0 || xLeftStickNegative)
-			m_rotation.y -= deltaTime * m_angularSpeed;
+		// The pitch and yaw for this 
+		float deltaPitch = 0.0f;
+		float deltaYaw = 0.0f;
 
-		m_rotation.x = ENGINE_CLAMP_F(m_rotation.x, -89.0f, 89.0f);
+		// Check for changes in input to adjust the camera pitch or yaw.
+		{
+			// Pitch Up.
+			if (mouseState.leftButton && deltaY > 0)
+				deltaPitch -= deltaTime * m_mouseAngularSpeed;
+			if (yLeftStickPositive)
+				deltaPitch -= deltaTime * m_gamePadAngularSpeed;
+
+			// Pitch Down.
+			if (mouseState.leftButton && deltaY < 0)
+				deltaPitch += deltaTime * m_mouseAngularSpeed;
+			if (yLeftStickNegative)
+				deltaPitch += deltaTime * m_gamePadAngularSpeed;
+
+			// Yaw Right.
+			if (mouseState.leftButton && deltaX > 0)
+				deltaYaw -= deltaTime * m_mouseAngularSpeed;
+			if (xLeftStickPositive)
+				deltaYaw -= deltaTime * m_gamePadAngularSpeed;
+
+			// Yaw Left.
+			if (mouseState.leftButton && deltaX < 0)
+				deltaYaw += deltaTime * m_mouseAngularSpeed;
+			if (xLeftStickNegative)
+				deltaYaw += deltaTime * m_gamePadAngularSpeed;
+		}
+
+
+		// Construct the transformation matrices to go to local space, rotate, and come back to world space.
+		const XMMATRIX localSpaceMatrix = XMMatrixTranslation(-m_target.x, -m_target.y, -m_target.z);
+		const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(deltaPitch), XMConvertToRadians(deltaYaw), 0.0f);
+		const XMMATRIX worldSpaceMatrix = XMMatrixTranslation(m_target.x, m_target.y, m_target.z);
+
+		// Apply the model, rotation, world transformation to the camera transform.
+		XMMATRIX transform = XMLoadFloat4x4(&m_transform);
+		transform *= localSpaceMatrix * rotationMatrix * worldSpaceMatrix;
+		XMStoreFloat4x4(&m_transform, transform);
 
 		// Update the last mouse position for this frame.
 		m_lastMousePosition = { mouseState.x, mouseState.y };
@@ -121,30 +140,5 @@ void ArcBallCamera::UpdateZoom(float deltaTime)
 		// Clamp the FOV angle to the range of [1, 45] degrees.
 		m_fovAngle = ENGINE_CLAMP_F(m_fovAngle, 1.0f, 45.0f);
 	}
-}
-
-XMVECTOR ArcBallCamera::ComputeForward(const XMVECTOR position) const
-{
-	// Compute the forward vector of the camera.
-	const XMVECTOR target = XMLoadFloat3(&m_target);
-	const XMVECTOR forward = target - position;
-	return forward;
-}
-
-XMVECTOR ArcBallCamera::ComputeRight() const
-{
-	// Compute the right vector of the camera.
-	const XMVECTOR forward = XMLoadFloat3(&m_forward);
-	const XMVECTOR right = XMVector3Cross(UP_VECTOR3_V, forward);
-	return right;
-}
-
-XMVECTOR ArcBallCamera::ComputeUp() const
-{
-	// Compute the up vector of the camera.
-	const XMVECTOR forward = XMLoadFloat3(&m_forward);
-	const XMVECTOR right = XMLoadFloat3(&m_right);
-	const XMVECTOR up = XMVector3Cross(forward, right);
-	return up;
 }
 
