@@ -74,16 +74,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\Win32\Debug;$(ProjectDir)Libraries\DXUTOpt\Win32\Debug;$(ProjectDir)Libraries\DirectXTK\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\Win32\Debug;$(ProjectDir)Libraries\DXUTOpt\Win32\Debug;$(ProjectDir)Libraries\DirectXTK\Win32\Debug;$(ProjectDir)Libraries\DirectXMesh\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -103,7 +103,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\Win32\Release;$(ProjectDir)Libraries\DXUTOpt\Win32\Release;$(ProjectDir)Libraries\DirectXTK\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\Win32\Release;$(ProjectDir)Libraries\DXUTOpt\Win32\Release;$(ProjectDir)Libraries\DirectXTK\Win32\Release;$(ProjectDir)Libraries\DirectXMesh\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -119,7 +119,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\x64\Debug;$(ProjectDir)Libraries\DXUTOpt\x64\Debug;$(ProjectDir)Libraries\DirectXTK\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\x64\Debug;$(ProjectDir)Libraries\DXUTOpt\x64\Debug;$(ProjectDir)Libraries\DirectXTK\x64\Debug;$(ProjectDir)Libraries\DirectXMesh\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +139,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\x64\Release;$(ProjectDir)Libraries\DXUTOpt\x64\Release;$(ProjectDir)Libraries\DirectXTK\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\DXUT\x64\Release;$(ProjectDir)Libraries\DXUTOpt\x64\Release;$(ProjectDir)Libraries\DirectXTK\x64\Release;$(ProjectDir)Libraries\DirectXMesh\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -162,7 +162,7 @@
     <ClCompile Include="Source\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Includes\DirectXMesh\WaveFrontReader.h" />
+    <ClInclude Include="Includes\DirectXMesh\Utilities\WaveFrontReader.h" />
     <ClInclude Include="Source\Cameras\ArcBallCamera.h" />
     <ClInclude Include="Source\Constants\Math.h" />
     <ClInclude Include="Source\InputManager\InputManager.h" />

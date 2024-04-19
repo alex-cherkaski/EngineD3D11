@@ -37,7 +37,9 @@ using namespace DirectX;
 #include "Includes/DirectXTK/Keyboard.h"
 #include "Includes/DirectXTK/Mouse.h"
 #include "Includes/DirectXTK/GamePad.h"
-#include "Includes/DirectXMesh/WaveFrontReader.h"
+
+#include "Includes/DirectXMesh/Utilities/WaveFrontReader.h"
+#include "Includes/DirectXMesh/DirectXMesh.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -50,6 +52,7 @@ using namespace DirectX;
 #pragma comment(lib, "comctl32.lib") // Needed for one of the functions in DXUT. https://forums.codeguru.com/showthread.php?43971-error-LNK2001-unresolved-external-symbol-__imp__InitCommonControls-0
 
 #pragma comment(lib, "DirectXTK.lib")
+#pragma comment(lib, "DirectXMesh.lib")
 
 #pragma comment(lib, "Rpcrt4.lib") // For UUID generation.
 

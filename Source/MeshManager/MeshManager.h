@@ -17,6 +17,9 @@ public:
 	void Clear() { m_meshMap.clear(); }
 
 private:
+	void GenerateMeshNormals(Mesh& mesh);
+
+private:
 	std::unordered_map<const wchar_t*, Mesh> m_meshMap;
 };
 

@@ -72,6 +72,7 @@ class Renderer final
 
 public:
 	void Initialize();
+	void PreRender();
 	void Render();
 	void Shutdown();
 
@@ -79,10 +80,9 @@ private:
 	void CreateDeviceAndSwapChain();
 	void CreateRenderTargetView();
 	void CreateDepthStencilView();
-	void CreateConstantBuffer();
 	void CreateBlendState();
 	void CreateSamplerState();
-	void CreateMVPConstantBuffers();
+	void CreateConstantBuffers();
 	void CreateViewPort();
 
 	void Clear();
@@ -105,9 +105,10 @@ public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 
 public:
-	void UpdateViewMatrix();
-	void UpdateProjectionMatrix();
-	void UpdateViewProjectionMatrix();
+	void UpdateCameraPositionConstantBuffer();
+	void UpdateModelMatrixConstantBuffer(const CoreObject& coreObject);
+	void UpdateViewMatrixConstantBuffer();
+	void UpdateProjectionMatrixConstantBuffer();
 
 private:
 	void WriteUITextData(const CoreObject& coreObject);
@@ -131,13 +132,13 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_id3d11DepthStencilView = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_id3d11BlendState = nullptr;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_id3d11ConstantBuffer = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_id3d11SamplerState = nullptr;
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_modelMatrixBuffer = nullptr;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewMatrixBuffer = nullptr;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_projectionMatrixBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbCameraPosition = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerMesh = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerFrame = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesRarely = nullptr;
 
 	D3D_DRIVER_TYPE m_driverType = D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_1_0_CORE;
