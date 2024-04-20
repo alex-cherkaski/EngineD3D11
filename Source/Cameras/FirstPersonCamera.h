@@ -27,6 +27,9 @@ public:
 	float GetTriggerZoomSpeed() const { return m_triggerZoomSpeed; }
 	float SetTriggerZoomSpeed(float speed) { m_triggerZoomSpeed = speed; }
 
+	float GetFOVAngle() const { return m_fovAngle; }
+	float SetFOVAngle(float fovAngle) { m_fovAngle = ENGINE_CLAMP_F(fovAngle, 1.0f, 45.0f); }
+
 private:
 	void UpdateRotation(float deltaTime);
 	void UpdateTranslation(float deltaTime);

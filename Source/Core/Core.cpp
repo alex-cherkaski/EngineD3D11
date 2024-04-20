@@ -356,6 +356,8 @@ void Renderer::Initialize()
 	CreateConstantBuffers();
 	CreateViewPort();
 
+	UpdateProjectionMatrixConstantBuffer();
+
 	Logger::GetInstanceWrite().Log(Logger::Message, "Successfully initialized renderer.");
 }
 
@@ -363,7 +365,21 @@ void Renderer::PreRender()
 {
 	UpdateCameraPositionConstantBuffer();
 	UpdateViewMatrixConstantBuffer();
-	UpdateProjectionMatrixConstantBuffer();
+
+	// Variable to cache the camera FOV angle from the last frame if the angle changed.
+	//static const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//static float lastFOVAngle = arcBallCamera.GetFOVAngle();
+	static const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	static float lastFOVAngle = firstPersonCamera.GetFOVAngle();
+
+	// Only update the projection matrix buffer if the camera FOV angle has changed.
+	//float currentFOVAngle = arcBallCamera.GetFOVAngle();
+	float currentFOVAngle = firstPersonCamera.GetFOVAngle();
+	if (currentFOVAngle != lastFOVAngle)
+	{
+		UpdateProjectionMatrixConstantBuffer();
+		lastFOVAngle = currentFOVAngle;
+	}
 }
 
 void Renderer::Render()
@@ -1058,11 +1074,11 @@ void Renderer::CreateConstantBuffers()
 void Renderer::UpdateCameraPositionConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
-	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	//const XMFLOAT3 position = firstPersonCamera.GetPosition();
+	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	const XMFLOAT3 position = firstPersonCamera.GetPosition();
 
-	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
-	const XMFLOAT3& position = arcBallCamera.GetCameraPosition();
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//const XMFLOAT3& position = arcBallCamera.GetCameraPosition();
 
 	// Update the view matrix constant data.
 	m_id3d11DeviceContext->UpdateSubresource(
@@ -1112,11 +1128,11 @@ void Renderer::UpdateModelMatrixConstantBuffer(const CoreObject& coreObject)
 void Renderer::UpdateViewMatrixConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
-	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	//const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
+	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
 
-	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
-	const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
 
 	// Update the view matrix constant data.
 	m_id3d11DeviceContext->UpdateSubresource(
@@ -1158,11 +1174,11 @@ void Renderer::UpdateProjectionMatrixConstantBuffer()
 	//);
 
 	// Retrieve the projection matrix from the current camera.
-	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	//const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
+	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
 
-	const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
 
 	// Update the projection matrix constant buffer.
 	m_id3d11DeviceContext->UpdateSubresource(
