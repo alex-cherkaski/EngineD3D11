@@ -1,0 +1,1 @@
+C:\RootUserFolder\DevLibraries\DirectXMesh-feb2024\DirectXMesh-feb2024\DirectXMesh\Bin\Desktop_2022\Win32\Release\DirectXMesh.lib
