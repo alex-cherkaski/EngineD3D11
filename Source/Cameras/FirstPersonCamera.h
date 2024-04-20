@@ -12,7 +12,7 @@ public:
 	XMMATRIX GetViewMatrix() const;
 	XMMATRIX GetProjectionMatrix() const;
 
-	const XMFLOAT3 GetPosition() const { return { m_transform._41, m_transform._42, m_transform._43 }; }
+	const XMFLOAT4 GetPosition() const { return { m_transform._41, m_transform._42, m_transform._43, m_transform._44 }; }
 	void SetPosition(const XMFLOAT3& position) { m_transform._41 = position.x; m_transform._42 = position.y; m_transform._43 = position.z; }
 
 	float GetLinearSpeed() const { return m_linearSpeed; }

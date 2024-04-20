@@ -1,24 +1,18 @@
-// Camera world position constat buffer.
-cbuffer cbChangesPerMesh : register(b0)
-{
-    float3 cameraPosition;
-}
-
 // Model matrix constant buffer.
-cbuffer cbChangesPerMesh : register(b1)
+cbuffer cbChangesPerMesh : register(b0)
 {
     matrix modelMatrix;
 }
 
 // View matrix constant buffer.
-cbuffer cbChangesPerFrame : register(b2)
+cbuffer cbChangesPerFrame : register(b1)
 {
     matrix viewMatrix;
-    //float3 cameraPosition;
+    float4 cameraPosition;
 }
 
 // Projection matrix constant buffer.
-cbuffer cbChangesRarely : register(b3)
+cbuffer cbChangesRarely : register(b2)
 {
     matrix projectionMatrix;
 }
@@ -65,7 +59,7 @@ PS_Input VS_Main(VS_Input input)
     output.lightVector = normalize(lightPosition - input.position);
     
     // Calculate the camera direction vector that will be forwarded to the pixel shader.
-    output.viewVector = normalize(cameraPosition - input.position);
+    output.viewVector = normalize((float3)cameraPosition - input.position);
     
     // Forward the output data to the pixel shader.
     return output;

@@ -356,15 +356,14 @@ void Renderer::Initialize()
 	CreateConstantBuffers();
 	CreateViewPort();
 
-	UpdateProjectionMatrixConstantBuffer();
+	UpdateProjectionConstantBuffer();
 
 	Logger::GetInstanceWrite().Log(Logger::Message, "Successfully initialized renderer.");
 }
 
 void Renderer::PreRender()
 {
-	UpdateCameraPositionConstantBuffer();
-	UpdateViewMatrixConstantBuffer();
+	UpdatePerFrameConstantBuffer();
 
 	// Variable to cache the camera FOV angle from the last frame if the angle changed.
 	//static const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
@@ -377,7 +376,7 @@ void Renderer::PreRender()
 	float currentFOVAngle = firstPersonCamera.GetFOVAngle();
 	if (currentFOVAngle != lastFOVAngle)
 	{
-		UpdateProjectionMatrixConstantBuffer();
+		UpdateProjectionConstantBuffer();
 		lastFOVAngle = currentFOVAngle;
 	}
 }
@@ -397,7 +396,7 @@ void Renderer::Render()
 	}
 	for (const CoreObject& coreObject : coreObjectManager.GetCore3DModelsRead())
 	{
-		UpdateModelMatrixConstantBuffer(coreObject);
+		UpdatePerMeshConstantBuffer(coreObject);
 		Draw3DModels(coreObject);
 	}
 
@@ -773,6 +772,63 @@ void Renderer::Present()
 	m_idxgiSwapChain->Present(0, 0);
 }
 
+void Renderer::CreatePerMeshConstantBuffer()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	// Attempt to create the camera position constant buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
+		nullptr,								// Pointer to optional initial data struct.
+		m_cbChangesPerMesh.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreatePerFrameConstantBuffer()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX) + sizeof(XMFLOAT4);			// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	// Attempt to create the camera position constant buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
+		nullptr,								// Pointer to optional initial data struct.
+		m_cbChangesPerFrame.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateProjectionConstantBuffer()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	// Attempt to create the camera position constant buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
+		nullptr,								// Pointer to optional initial data struct.
+		m_cbChangesRarely.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
 void Renderer::CreateDefaultVertexBuffer(GPUModelData& gpuModelData)
 {
 	// Initialize the vertex buffer descriptor struct.
@@ -1024,68 +1080,31 @@ void Renderer::CreateSamplerState()
 
 void Renderer::CreateConstantBuffers()
 {
-	// Initialize constant buffer descriptor struct.
-	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
-	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
-	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
-	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
-
-	// Attempt to create the camera position constant buffer.
-	const HRESULT createCameraPositionBuffer = m_id3d11Device->CreateBuffer(
-		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
-		nullptr,								// Pointer to optional initial data struct.
-		m_cbCameraPosition.GetAddressOf()		// Pointer to resulting interface.
-	);
-
-	// Error check camera position constant buffer creation.
-	ENGINE_ASSERT_HRESULT(createCameraPositionBuffer);
-
-	// Attempt to create the model matrix constant buffer.
-	const HRESULT createModelMatrixBuffer = m_id3d11Device->CreateBuffer(
-		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
-		nullptr,								// Pointer to optional initial data struct.
-		m_cbChangesPerMesh.GetAddressOf()		// Pointer to resulting interface.
-	);
-
-	// Error check model matrix constant buffer creation.
-	ENGINE_ASSERT_HRESULT(createModelMatrixBuffer);
-
-	// Attempt to create the view matrix constant buffer.
-	const HRESULT createViewMatrixBuffer = m_id3d11Device->CreateBuffer(
-		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
-		nullptr,								// Pointer to optional initial data struct.
-		m_cbChangesPerFrame.GetAddressOf()		// Pointer to resulting interface.
-	);
-
-	// Error check view matrix constant buffer creation.
-	ENGINE_ASSERT_HRESULT(createViewMatrixBuffer);
-
-	// Attempt to create the projection matrix constant buffer.
-	const HRESULT createProjectionMatrixBuffer = m_id3d11Device->CreateBuffer(
-		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
-		nullptr,								// Pointer to optional initial data struct.
-		m_cbChangesRarely.GetAddressOf()		// Pointer to resulting interface.
-	);
-
-	// Error check projection matrix constant buffer creation.
-	ENGINE_ASSERT_HRESULT(createProjectionMatrixBuffer);
+	CreatePerMeshConstantBuffer();
+	CreatePerFrameConstantBuffer();
+	CreateProjectionConstantBuffer();
 }
 
-void Renderer::UpdateCameraPositionConstantBuffer()
+void Renderer::UpdatePerMeshConstantBuffer(const CoreObject& coreObject)
 {
 	// Retrieve the current camera to update the view matrix.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const XMFLOAT3 position = firstPersonCamera.GetPosition();
-
 	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
-	//const XMFLOAT3& position = arcBallCamera.GetCameraPosition();
 
-	// Update the view matrix constant data.
+	//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
+	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-90), 0.0f, 0.0f);
+	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
+	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
+		coreObject.GetWorldMatrix(),
+		XMMatrixMultiply(rotationMatrix, translationMatrix)
+	);
+
+	// Update the contents of the per mesh constant buffer.
 	m_id3d11DeviceContext->UpdateSubresource(
-		m_cbCameraPosition.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		m_cbChangesPerMesh.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
 		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&position,						// Pointer to the buffer of data we wish to copy to the subresource.
+		&worldMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
 		sizeof(XMFLOAT3),				// The size of one row of the source data.
 		0								// The size of the depth slice of the source data.
 	);
@@ -1094,85 +1113,48 @@ void Renderer::UpdateCameraPositionConstantBuffer()
 	m_id3d11DeviceContext->VSSetConstantBuffers(
 		0,										// The slot index that we are setting.
 		1,										// The number of buffers that we are setting.
-		m_cbCameraPosition.GetAddressOf()		// Pointer to the array of constant buffers to set.
-	);
-}
-
-void Renderer::UpdateModelMatrixConstantBuffer(const CoreObject& coreObject)
-{
-	// Update the world matrix constant data.
-//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
-	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-90), 0.0f, 0.0f);
-	const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
-	const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
-		coreObject.GetWorldMatrix(),
-		XMMatrixMultiply(rotationMatrix, translationMatrix)
-	);
-	m_id3d11DeviceContext->UpdateSubresource(
-		m_cbChangesPerMesh.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
-		0,								// Index of the subresource we want to update.
-		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&worldMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
-		sizeof(XMMATRIX::r),			// The size of one row of the source data.
-		0								// The size of the depth slice of the source data.
-	);
-
-	// Set the world matrix constant buffer.
-	m_id3d11DeviceContext->VSSetConstantBuffers(
-		1,										// The slot index that we are setting.
-		1,										// The number of buffers that we are setting.
 		m_cbChangesPerMesh.GetAddressOf()		// Pointer to the array of constant buffers to set.
 	);
 }
 
-void Renderer::UpdateViewMatrixConstantBuffer()
+void Renderer::UpdatePerFrameConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
 	const XMMATRIX viewMatrix = XMMatrixTranspose(firstPersonCamera.GetViewMatrix());
+	const XMFLOAT4& cameraPosition = firstPersonCamera.GetPosition();
 
 	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
 	//const XMMATRIX viewMatrix = XMMatrixTranspose(arcBallCamera.GetViewMatrix());
+
+	struct PerFrameData
+	{
+		XMMATRIX viewMatrix;
+		XMFLOAT4 cameraPosition;
+	};
+
+	PerFrameData data = { viewMatrix, cameraPosition };
 
 	// Update the view matrix constant data.
 	m_id3d11DeviceContext->UpdateSubresource(
 		m_cbChangesPerFrame.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
 		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&viewMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		&data,							// Pointer to the buffer of data we wish to copy to the subresource.
 		sizeof(XMMATRIX::r),			// The size of one row of the source data.
 		0								// The size of the depth slice of the source data.
 	);
 
 	// Set the view matrix constant buffer.
 	m_id3d11DeviceContext->VSSetConstantBuffers(
-		2,										// The slot index that we are setting.
+		1,										// The slot index that we are setting.
 		1,										// The number of buffers that we are setting.
 		m_cbChangesPerFrame.GetAddressOf()		// Pointer to the array of constant buffers to set.
 	);
 }
 
-void Renderer::UpdateProjectionMatrixConstantBuffer()
+void Renderer::UpdateProjectionConstantBuffer()
 {
-	//static const Window& window = Window::GetInstanceRead();
-
-	// Construct the window dimensions based on window's client dimensions.
-// 	m_projectionMatrix = XMMatrixOrthographicOffCenterLH(
-// 		0.0f,									// Left end of the view volume.
-// 		(float)window.GetClientWidth(),			// Right end of the view volume.
-// 		0.0f,									// Bottom end of the view volume.
-// 		(float)window.GetClientHeight(),		// Top end of the view volume.
-// 		0.1f,									// Distance of the near plane from the camera.
-// 		100.0f									// Distance of the far plane from the camera.
-// 	);
-
-	//m_projectionMatrix = XMMatrixPerspectiveFovLH(
-	//	XM_PIDIV4,													// The vertical field of view.
-	//	(float)window.GetClientWidth() / window.GetClientHeight(),	// The aspect ratio of the window.
-	//	0.1f,														// Distance from the origin to the near clipping plane.
-	//	100.0f														// Distance form the origin to the far clipping plane.
-	//);
-
 	// Retrieve the projection matrix from the current camera.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
 	const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
@@ -1192,7 +1174,7 @@ void Renderer::UpdateProjectionMatrixConstantBuffer()
 
 	// Set the projection matrix constant buffer.
 	m_id3d11DeviceContext->VSSetConstantBuffers(
-		3,										// The slot index that we are setting.
+		2,										// The slot index that we are setting.
 		1,										// The number of buffers that we are setting.
 		m_cbChangesRarely.GetAddressOf()		// Pointer to the array of constant buffers to set.
 	);

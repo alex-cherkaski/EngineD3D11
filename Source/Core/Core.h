@@ -91,6 +91,10 @@ private:
 	void Draw3DModels(const CoreObject& coreObject);
 	void Present();
 
+	void CreatePerMeshConstantBuffer();
+	void CreatePerFrameConstantBuffer();
+	void CreateProjectionConstantBuffer();
+
 public:
 	void CreateDefaultVertexBuffer(GPUModelData& gpuModelData);
 	void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
@@ -104,11 +108,10 @@ public:
 public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 
-public:
-	void UpdateCameraPositionConstantBuffer();
-	void UpdateModelMatrixConstantBuffer(const CoreObject& coreObject);
-	void UpdateViewMatrixConstantBuffer();
-	void UpdateProjectionMatrixConstantBuffer();
+private:
+	void UpdatePerMeshConstantBuffer(const CoreObject& coreObject);
+	void UpdatePerFrameConstantBuffer();
+	void UpdateProjectionConstantBuffer();
 
 private:
 	void WriteUITextData(const CoreObject& coreObject);
@@ -135,7 +138,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_id3d11SamplerState = nullptr;
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbCameraPosition = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerMesh = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerFrame = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesRarely = nullptr;
