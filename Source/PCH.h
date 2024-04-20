@@ -9,10 +9,10 @@
 #endif
 
 #include <Windows.h>
-#include <wrl.h>	// ComPtr
-#include <comdef.h> // COM error reporting.
-#include <rpcdce.h> // For UUID generation.
-#include <rpcnterr.h> // For UUID error check.
+#include <wrl.h>		// ComPtr
+#include <comdef.h>		// COM error reporting.
+#include <rpcdce.h>		// For UUID generation.
+#include <rpcnterr.h>	// For UUID error check.
 
 #include <cassert>
 #include <cstdio>
@@ -30,8 +30,6 @@
 
 using namespace DirectX;
 
-#include "Includes/DXUT/dxerr.h"
-
 #include "Includes/DirectXTK/WICTextureLoader.h"
 #include "Includes/DirectXTK/DDSTextureLoader.h"
 #include "Includes/DirectXTK/Keyboard.h"
@@ -46,10 +44,6 @@ using namespace DirectX;
 #pragma comment(lib, "d3dcompiler.lib")
 //#pragma comment(lib, "winmm.lib")
 #pragma  comment(lib, "comsuppw.lib") // COM error reporting.
-
-#pragma comment(lib, "DXUT.lib")
-#pragma comment(lib, "DXUTOpt.lib")
-#pragma comment(lib, "comctl32.lib") // Needed for one of the functions in DXUT. https://forums.codeguru.com/showthread.php?43971-error-LNK2001-unresolved-external-symbol-__imp__InitCommonControls-0
 
 #pragma comment(lib, "DirectXTK.lib")
 #pragma comment(lib, "DirectXMesh.lib")

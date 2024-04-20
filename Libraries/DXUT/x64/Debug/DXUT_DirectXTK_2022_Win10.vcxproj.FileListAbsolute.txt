@@ -1,1 +1,0 @@
-C:\RootUserFolder\DevLibraries\DXUT-jun2023\DXUT-jun2023\Core\Bin\DirectXTK_2022\x64\Debug\DXUT.lib

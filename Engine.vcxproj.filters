@@ -51,9 +51,6 @@
     <ClCompile Include="Source\MeshManager\MeshManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Cameras\CameraManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Core.h">
@@ -96,15 +93,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Includes\DirectXMesh\Utilities\WaveFrontReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Cameras\CameraManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Cameras\ICamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Includes\DirectXMesh\Utilities\FlexibleVertexFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

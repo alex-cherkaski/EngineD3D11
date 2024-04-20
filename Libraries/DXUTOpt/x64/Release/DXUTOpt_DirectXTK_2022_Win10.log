@@ -1,8 +1,0 @@
-﻿  DXUTres.cpp
-  DXUTcamera.cpp
-  DXUTgui.cpp
-  DXUTguiIME.cpp
-  DXUTsettingsdlg.cpp
-  ImeUi.cpp
-  SDKmisc.cpp
-  DXUTOpt_DirectXTK_2022_Win10.vcxproj -> C:\RootUserFolder\DevLibraries\DXUT-jun2023\DXUT-jun2023\Optional\Bin\DirectXTK_2022\x64\Release\DXUTOpt.lib
