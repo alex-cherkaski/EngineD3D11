@@ -21,9 +21,9 @@ void PhysicsSystem::Update(float deltaTime)
 		// Rotation Update.
 		{
 			// Calculate the changes in roll, pitch, and yaw for this frame.
-			const float pitch = XMConvertToRadians(physicsComponent.AngularVelocity.x) * deltaTime;
-			const float yaw = XMConvertToRadians(physicsComponent.AngularVelocity.y) * deltaTime;
-			const float roll = XMConvertToRadians(physicsComponent.AngularVelocity.z) * deltaTime;
+			const float pitch = XMConvertToRadians(physicsComponent.AngularVelocity.x * deltaTime);
+			const float yaw = XMConvertToRadians(physicsComponent.AngularVelocity.y * deltaTime);
+			const float roll = XMConvertToRadians(physicsComponent.AngularVelocity.z * deltaTime);
 
 			// Construct the rotation matrix.
 			const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
