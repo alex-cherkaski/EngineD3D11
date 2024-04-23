@@ -2,39 +2,29 @@
 #include "MeshManager.h"
 #include "Core/Core.h"
 
-//void MeshManager::Initialize()
-//{
-//	//CreateMesh("Space Ship", "./Resources/Models/SciFi_Fighter_AK5.obj");
-//	//const auto a = CreateMesh(L"Cube", L"./Resources/Models/capsule.obj");
-//	const auto b = CreateMesh(L"Spot", L"./Resources/Models/spot_triangulated.obj");
-//	//const auto c = CreateMesh(L"Ogre", L"./Resources/Models/bs_rest.obj");
-//
-//	int breakpoint = 0;
-//}
-
-const MeshData& MeshManager::CreateMeshData(const wchar_t* name, const wchar_t* path)
+const MeshData& MeshManager::CreateMeshData(const wchar_t* name, const wchar_t* path, bool isOpenGLMesh /*= false*/)
 {
 	// Ensure there are no previous entries for a mesh with the same name stored in the mesh data map.
 	ENGINE_ASSERT_W(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name);
 
 	// Load the mesh and get an instance of the mesh data struct from the map.
-	Mesh mesh = LoadMesh(path);
+	std::unique_ptr<Mesh> mesh = LoadMesh(path, isOpenGLMesh);
 	MeshData& meshData = m_meshDataMap[name];
-	
+
 	// Copy over the mesh vertex attributes.
-	meshData.Vertices.resize(mesh.vertices.size());
-	for (size_t i = 0; i < mesh.vertices.size(); ++i)
+	meshData.Vertices.resize(mesh->vertices.size());
+	for (size_t i = 0; i < mesh->vertices.size(); ++i)
 	{
-		meshData.Vertices[i].Position = mesh.vertices[i].position;
-		meshData.Vertices[i].Normal = mesh.vertices[i].normal;
-		meshData.Vertices[i].Texture = mesh.vertices[i].textureCoordinate;
+		meshData.Vertices[i].Position = mesh->vertices[i].position;
+		meshData.Vertices[i].Normal = mesh->vertices[i].normal;
+		meshData.Vertices[i].Texture = mesh->vertices[i].textureCoordinate;
 	}
 
 	// Copy over the mesh index data.
-	meshData.Indices.resize(mesh.indices.size());
-	for (size_t i = 0; i < mesh.indices.size(); ++i)
+	meshData.Indices.resize(mesh->indices.size());
+	for (size_t i = 0; i < mesh->indices.size(); ++i)
 	{
-		meshData.Indices[i] = mesh.indices[i];
+		meshData.Indices[i] = mesh->indices[i];
 	}
 
 	// Create the GPU side vertex and index buffers, and set the primitive topology enum.
@@ -68,25 +58,31 @@ void MeshManager::DeleteMeshData(const wchar_t* name)
 	m_meshDataMap.erase(constIterator);
 }
 
-const Mesh MeshManager::LoadMesh(const wchar_t* path)
+std::unique_ptr<Mesh> MeshManager::LoadMesh(const wchar_t* path, bool isOpenGLMesh /*= false*/)
 {
-	Mesh mesh;
-	mesh.Load(path, false);
-	ENGINE_ASSERT_W(!mesh.vertices.empty(), "Failed to load mesh from %s.", path);
+	// Attempt to load the mesh.
+	std::unique_ptr<Mesh> mesh(new Mesh());
+	mesh->Load(path, false);
+	ENGINE_ASSERT_W(!mesh->vertices.empty(), "Failed to load mesh from %s.", path);
 
-	// Convert the GL mesh UVs to D3D mesh UVs.
-	for (auto& vertex : mesh.vertices)
+	// Generate mesh normals if they are missing.
+	if (!mesh->hasNormals)
 	{
-		//vertex.textureCoordinate.x *= -1;
-		vertex.textureCoordinate.y *= -1;
-		std::swap(vertex.position.y, vertex.position.z);
+		GenerateMeshNormals(*mesh);
 	}
 
-	if (!mesh.hasNormals)
+	// If the mesh is save with OpenGL UV coordinates in mind, convert it to DirectX UV format.
+	if (isOpenGLMesh)
 	{
-		GenerateMeshNormals(mesh);
+		// https://gamedev.net/forums/topic/649378-uv-problem-with-fbx-and-dx11/5104628/
+		for (Mesh::Vertex& vertex : mesh->vertices)
+		{
+			std::swap(vertex.position.y, vertex.position.z);
+			vertex.textureCoordinate.y *= -1;
+			vertex.normal = { -vertex.normal.x, -vertex.normal.y, -vertex.normal.z };
+		}
 	}
-	
+
 	return mesh;
 }
 
