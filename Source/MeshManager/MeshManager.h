@@ -1,5 +1,6 @@
 #pragma once
 #include "Macros.h"
+#include "MeshData.h"
 
 using Mesh = WaveFrontReader<UINT>;
 
@@ -8,18 +9,18 @@ class MeshManager final
 	SINGLETON(MeshManager);
 
 public:
-	void Initialize();
+	const MeshData& CreateMeshData(const wchar_t* name, const wchar_t* path);
+	bool HaveMeshData(const wchar_t* name);
+	const MeshData& GetMeshDataRead(const wchar_t* name) const;
+	void DeleteMeshData(const wchar_t* name);
 
-	const Mesh& CreateMesh(const wchar_t* name, const wchar_t* path);
-	const Mesh& GetMesh(const wchar_t* name) const;
-
-	void DeleteMesh(const wchar_t* name) { m_meshMap.erase(name); }
-	void Clear() { m_meshMap.clear(); }
+	void Clear() { m_meshDataMap.clear(); }
 
 private:
+	const Mesh LoadMesh(const wchar_t* path);
 	void GenerateMeshNormals(Mesh& mesh);
 
 private:
-	std::unordered_map<const wchar_t*, Mesh> m_meshMap;
+	std::unordered_map<const wchar_t*, MeshData> m_meshDataMap;
 };
 

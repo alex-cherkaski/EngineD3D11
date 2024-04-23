@@ -7,7 +7,11 @@
 #include "CoreGPUDataManager.h"
 #include "InputManager/InputManager.h"
 #include "Logger/Logger.h"
-#include "MeshManager/MeshManager.h"
+#include "MeshManager/MeshData.h"
+#include "ShaderManager/ShaderData.h"
+#include "TextureManager/TextureData.h"
+#include "SceneManager/SceneManager.h"
+#include "ECS/Registry.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -285,8 +289,8 @@ void Engine::Shutdown()
 
 void Engine::Setup()
 {
-	MeshManager::GetInstanceWrite().Initialize();
-	CoreObjectManager::GetInstanceWrite().Initialize();
+	SceneManager::GetInstanceWrite().Initialize();
+	//CoreObjectManager::GetInstanceWrite().Initialize();
 	ArcBallCamera::GetInstanceWrite().SetTargetPosition({ 0.0f, 0.0f, 6.0f });
 
 	m_isRunning = true;
@@ -306,6 +310,9 @@ void Engine::Update()
 
 	ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
 	arcBallCamera.Update(delatTime);
+
+	static Registry& registry = Registry::GetInstanceWrite();
+	registry.RunSystemsUpdate(delatTime);
 }
 
 void Engine::Render()
@@ -385,20 +392,23 @@ void Renderer::Render()
 {
 	Clear();
 
-	static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
-	for (const CoreObject& coreObject : coreObjectManager.GetCoreSpritesRead())
-	{
-		DrawSprites(coreObject);
-	}
-	for (const CoreObject& coreObject : coreObjectManager.GetCoreUITextsRead())
-	{
-		DrawUITexts(coreObject);
-	}
-	for (const CoreObject& coreObject : coreObjectManager.GetCore3DModelsRead())
-	{
-		UpdatePerMeshConstantBuffer(coreObject);
-		Draw3DModels(coreObject);
-	}
+	//static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
+	//for (const CoreObject& coreObject : coreObjectManager.GetCoreSpritesRead())
+	//{
+	//	DrawSprites(coreObject);
+	//}
+	//for (const CoreObject& coreObject : coreObjectManager.GetCoreUITextsRead())
+	//{
+	//	DrawUITexts(coreObject);
+	//}
+	//for (const CoreObject& coreObject : coreObjectManager.GetCore3DModelsRead())
+	//{
+	//	UpdatePerMeshConstantBuffer(coreObject);
+	//	Draw3DModels(coreObject);
+	//}
+
+	static Registry& registry = Registry::GetInstanceWrite();
+	registry.RunSystemsRender();
 
 	Present();
 }
@@ -766,6 +776,77 @@ void Renderer::Draw3DModels(const CoreObject& coreObject)
 	);
 }
 
+void Renderer::DrawMesh(const MeshData& meshData, const ShaderData& shaderData, const TextureData& textureData)
+{
+	// Calculate each vertex element stride and position.
+	const UINT stride = sizeof(VertexAttributes);
+	const UINT offset = 0;
+
+	// Set the input layout for the current model
+	m_id3d11DeviceContext->IASetInputLayout(shaderData.InputLayout.Get());
+
+	// Set the vertex buffer for the current model.
+	m_id3d11DeviceContext->IASetVertexBuffers(
+		0,										// The slot to be used for this set of vertex buffer.
+		1,										// The number of vertex buffers in the vertex buffer array.
+		meshData.VertexBuffer.GetAddressOf(),	// The array of vertex buffers to set.
+		&stride,								// The stride from one vertex element to the next.
+		&offset									// The offset until the first vertex element in the buffer.
+	);
+
+	// Set the index buffer for the current model.
+	m_id3d11DeviceContext->IASetIndexBuffer(
+		meshData.IndexBuffer.Get(),				// Pointer to the index buffer interface to set.
+		DXGI_FORMAT::DXGI_FORMAT_R32_UINT,		// The format of the index buffer to set.
+		0										// Offset from the start of the index buffer to the first index to use.
+	);
+
+	// Set the primitive topology setting to draw the vertices with.
+	m_id3d11DeviceContext->IASetPrimitiveTopology(meshData.PrimitiveTopology);
+
+	// Set the vertex shader to draw with.
+	m_id3d11DeviceContext->VSSetShader(
+		shaderData.VertexShader.Get(),		// Pointer to the vertex shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader to draw with.
+	m_id3d11DeviceContext->PSSetShader(
+		shaderData.PixelShader.Get(),		// Pointer to the pixel shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader resource view to use to set the shader texture.
+	m_id3d11DeviceContext->PSSetShaderResources(
+		0,												// The index of the shader resource we want to set.
+		1,												// The number of shader resources in the share resource array.
+		textureData.ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+	);
+
+	// Set the pixel shader sampler state to sample the texture.
+	m_id3d11DeviceContext->PSSetSamplers(
+		0,										// The index of the shader sampler to set.
+		1,										// The number of sampler states in the sampler state array.
+		m_id3d11SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
+	);
+
+	// Set the render target view that will be used to access and write to the back buffer.
+	m_id3d11DeviceContext->OMSetRenderTargets(
+		1,											// The number of render target views to set.
+		m_id3d11RenderTargetView.GetAddressOf(),	// The array of pointers to the render target views to set.
+		m_id3d11DepthStencilView.Get()				// Optional pointer to depth stencil view interface.
+	);
+
+	// Draw the model.
+	m_id3d11DeviceContext->DrawIndexed(
+		(UINT)meshData.Indices.size(),		// The number of indices to draw.
+		0,									// The index of the first index value.
+		0									// Value added to each index before reading from the vertex buffer.
+	);
+}
+
 void Renderer::Present()
 {
 	// Present the contents of the back buffer to the screen.
@@ -853,6 +934,30 @@ void Renderer::CreateDefaultVertexBuffer(GPUModelData& gpuModelData)
 	ENGINE_ASSERT_HRESULT(createBufferResult);
 }
 
+void Renderer::CreateDefaultVertexBuffer(MeshData& meshData)
+{
+	// Initialize the vertex buffer descriptor struct.
+	D3D11_BUFFER_DESC vertexBufferDecription = { 0 };
+	vertexBufferDecription.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;								// How the buffer will be accessed.
+	vertexBufferDecription.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
+	vertexBufferDecription.ByteWidth = (UINT)(meshData.Vertices.size() * sizeof(VertexAttributes));	// The size of the buffer.
+
+	// Initialize the vertex buffer initial data struct.
+	D3D11_SUBRESOURCE_DATA initialBufferData = { nullptr };
+	initialBufferData.pSysMem = meshData.Vertices.data(); // Initial vertex data.
+
+	// Attempt to create the vertex buffer.
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&vertexBufferDecription,				// The buffer description struct.
+		&initialBufferData,						// The initial buffer data.
+		meshData.VertexBuffer.GetAddressOf()	// Pointer to the resulting buffer interface.
+	);
+
+	// Error check vertex buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
 void Renderer::CreateDynamicVertexBuffer(GPUModelData& gpuModelData)
 {
 	// Initialize the vertex buffer descriptor struct.
@@ -891,6 +996,29 @@ void Renderer::CreateIndexBuffer(GPUModelData& gpuModelData)
 		&indexBufferDescriptor,						// The index buffer descriptor struct.
 		&initialIndexData,							// Pointer to struct with initial index buffer data.
 		gpuModelData.IndexBuffer.GetAddressOf()		// Pointer to the returned vertex buffer interface.
+	);
+
+	// Error check index buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateIndexBuffer(MeshData& meshData)
+{
+	// Initialize the index buffer descriptor struct.
+	D3D11_BUFFER_DESC indexBufferDescriptor = { 0 };
+	indexBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;							// The GPU will have read and write access to the buffer.
+	indexBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;				// How the buffer will be used by the driver.
+	indexBufferDescriptor.ByteWidth = (UINT)(sizeof(UINT) * meshData.Indices.size());	// The size of the allocated index buffer.
+
+	// Initialize the initial index data struct.
+	D3D11_SUBRESOURCE_DATA initialIndexData = { nullptr };
+	initialIndexData.pSysMem = meshData.Indices.data();
+
+	// Attempt to create the initial index buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&indexBufferDescriptor,						// The index buffer descriptor struct.
+		&initialIndexData,							// Pointer to struct with initial index buffer data.
+		meshData.IndexBuffer.GetAddressOf()		// Pointer to the returned vertex buffer interface.
 	);
 
 	// Error check index buffer creation.
@@ -979,6 +1107,166 @@ void Renderer::CreateInputLayout(GPUModelData& gpuModelData)
 
 	// Error check input layout creation.
 	ENGINE_ASSERT_HRESULT(createInputLayoutResult);
+}
+
+void Renderer::CreateInputLayout(ShaderData& shaderData)
+{
+	// Array of vertex element descriptors.
+	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
+		{
+			"POSITION",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,					// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			0,															// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		},
+		{
+			"NORMAL",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,					// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			(UINT)sizeof(VertexAttributes::Position),					// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		},
+		{
+			"TEXCOORD",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,						// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			(UINT)sizeof(VertexAttributes::Position) + (UINT)sizeof(VertexAttributes::Normal) ,					// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		}
+	};
+
+	// Attempt to create the input layout.
+	const HRESULT createInputLayoutResult = m_id3d11Device->CreateInputLayout(
+		inputElements,									// Array of vertex shader input elements.
+		ARRAYSIZE(inputElements),						// Number of elements in the input element array.
+		shaderData.VertexBlob->GetBufferPointer(),		// Pointer to the compiled shader byte code.
+		shaderData.VertexBlob->GetBufferSize(),			// The size of the compiled shader byte code.
+		shaderData.InputLayout.GetAddressOf()			// Pointer to the resulting input layout interface.
+	);
+
+	// Error check input layout creation.
+	ENGINE_ASSERT_HRESULT(createInputLayoutResult);
+}
+
+void Renderer::CreateVertexShader(ShaderData& shaderData)
+{
+	// Shader compilation flags.
+#ifdef _DEBUG
+	const DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
+#else
+	const DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#endif // _DEBUG
+
+	// Attempt to compile the vertex shader.
+	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
+	const HRESULT compileResult = D3DCompileFromFile(
+		shaderData.VertexShaderPath.c_str(),		// Shader source path.
+		nullptr,									// Optional shader macros array.
+		nullptr,									// Optional D3D11Include pointer.
+		"VS_Main",									// Shader entry point.
+		"vs_5_0",									// Vertex shader standards to compile against.
+		shaderFlags,								// Shader compilation flags.
+		0,											// Additional misc flags.
+		shaderData.VertexBlob.GetAddressOf(),		// Compiled vertex shade code.
+		errorBlob.GetAddressOf()					// Error blob on error.
+	);
+
+	// Error check shader compilation.
+	ENGINE_ASSERT_HRESULT_SHADER(compileResult, errorBlob);
+
+	// Attempt to create the vertex shader.
+	const HRESULT createVertexShaderResult = m_id3d11Device->CreateVertexShader(
+		shaderData.VertexBlob->GetBufferPointer(),	// Pointer to compiled vertex shader byte code.
+		shaderData.VertexBlob->GetBufferSize(),		// The size of the compiled byte code.
+		nullptr,									// Optional ID3D11ClassLinkage pointer.
+		shaderData.VertexShader.GetAddressOf()		// Pointer to the resulting shader interface.
+	);
+
+	// Error check vertex shader creation.
+	ENGINE_ASSERT_HRESULT(createVertexShaderResult);
+}
+
+void Renderer::CreatePixelShader(ShaderData& shaderData)
+{
+	// Shader compilation flags.
+#ifdef _DEBUG
+	const DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
+#else
+	const DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#endif // _DEBUG
+
+	// Attempt to compile the pixel shader.
+	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
+	const HRESULT compileResult = D3DCompileFromFile(
+		shaderData.PixelShaderPath.c_str(),			// Path to pixel shader source code.
+		nullptr,									// Optional array of D3D_SHADER_MACRO.
+		nullptr,									// Optional ID3DInclude pointer.
+		"PS_Main",									// Shader entry point.
+		"ps_5_0",									// Shader standard to compile against.
+		shaderFlags,								// Shader compilation flags.
+		0,											// Additional misc compilation flags.
+		shaderData.PixelBlob.GetAddressOf(),		// Pointer to the resulting pixel shader interface.
+		errorBlob.GetAddressOf()					// Shader compilation error data.
+	);
+
+	// Error check shader compilation.
+	ENGINE_ASSERT_HRESULT_SHADER(compileResult, errorBlob);
+
+	// Attempt to create the pixel shader.
+	const HRESULT createPixelShaderResult = m_id3d11Device->CreatePixelShader(
+		shaderData.PixelBlob->GetBufferPointer(),		// Pointer to compiled pixel shader byte code.
+		shaderData.PixelBlob->GetBufferSize(),			// The size of the compiled shader byte code.
+		nullptr,										// Optional ID3D11ClassLinkage pointer.
+		shaderData.PixelShader.GetAddressOf()			// Pointer to resulting pixel shader interface.
+	);
+
+	// Error check pixel shader creation.
+	ENGINE_ASSERT_HRESULT(createPixelShaderResult);
+}
+
+void Renderer::CreateShaderResourceViewFromFile(TextureData& textureData)
+{
+	if (textureData.IsDDS)
+	{
+		// Attempt to create the DDS texture.
+		const HRESULT createDDCTextyreFromFileResult = CreateDDSTextureFromFile(
+			m_id3d11Device.Get(),										// The device to use to create the texture view.
+			textureData.TextureFilePath.c_str(),						// The path to the DDS texture we wish to create.
+			(ID3D11Resource**)textureData.Texture2D.GetAddressOf(),		// Optional pointer to fill the texture interface.
+			textureData.ShaderResourceView.GetAddressOf()				// Pointer to the returned shader resource.
+		);
+
+		// Error check shader resource view creation.
+		ENGINE_ASSERT_HRESULT(createDDCTextyreFromFileResult);
+
+		// Cache texture description struct.
+		textureData.Texture2D->GetDesc(&textureData.Texture2DDescriptor);
+	}
+
+	else
+	{
+		// Attempt to create the non DDS texture.
+		const HRESULT createWICTextureFromFileResult = CreateWICTextureFromFile(
+			m_id3d11Device.Get(),										// The device to use when creating the texture view.
+			m_id3d11DeviceContext.Get(),								// The device context to use when creating the texture view.
+			textureData.TextureFilePath.c_str(),						// The path to the texture the view should be create for.
+			(ID3D11Resource**)textureData.Texture2D.GetAddressOf(),		// Optional pointer to the resulted texture interface.
+			textureData.ShaderResourceView.GetAddressOf()				// Pointer to the resulting shader resource view.
+		);
+
+		// Error check shader resource view creation.
+		ENGINE_ASSERT_HRESULT(createWICTextureFromFileResult);
+
+		// Cache texture description struct.
+		textureData.Texture2D->GetDesc(&textureData.Texture2DDescriptor);
+	}
 }
 
 void Renderer::CreatePixelShader(GPUModelData& gpuModelData)
@@ -1117,6 +1405,39 @@ void Renderer::UpdatePerMeshConstantBuffer(const CoreObject& coreObject)
 	);
 }
 
+void Renderer::UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix)
+{
+	// Retrieve the current camera to update the view matrix.
+	//const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+
+	//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.7f, 0.7f);
+	//const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-90), 0.0f, 0.0f);
+	//const XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
+	//const XMMATRIX worldMatrix = XMMatrixMultiplyTranspose(
+	//	coreObject.GetWorldMatrix(),
+	//	XMMatrixMultiply(rotationMatrix, translationMatrix)
+	//);
+
+	// Update the contents of the per mesh constant buffer.
+	const XMMATRIX modelMatrix = XMMatrixTranspose(XMLoadFloat4x4(&worldMatrix));
+	m_id3d11DeviceContext->UpdateSubresource(
+		m_cbChangesPerMesh.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		0,								// Index of the subresource we want to update.
+		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&modelMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMFLOAT3),				// The size of one row of the source data.
+		0								// The size of the depth slice of the source data.
+	);
+
+	// Set the view matrix constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(
+		0,										// The slot index that we are setting.
+		1,										// The number of buffers that we are setting.
+		m_cbChangesPerMesh.GetAddressOf()		// Pointer to the array of constant buffers to set.
+	);
+}
+
 void Renderer::UpdatePerFrameConstantBuffer()
 {
 	// Retrieve the current camera to update the view matrix.
@@ -1182,36 +1503,36 @@ void Renderer::UpdateProjectionConstantBuffer()
 
 void Renderer::WriteUITextData(const CoreObject& coreObject)
 {
-	static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
-	GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
+	//static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
+	//GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
 
-	// Attempt to lock the vertex buffer and retrieve its data pointer.
-	D3D11_MAPPED_SUBRESOURCE vertexBufferData = { nullptr };
-	const HRESULT mapResult = m_id3d11DeviceContext->Map(
-		(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to the device interface to lock and retrieve data of.
-		0,													// The index slot of the resource we wish to map.
-		D3D11_MAP::D3D11_MAP_WRITE_DISCARD,					// Discard the last entry of the resource and use what is written.
-		0,													// Additional mapping create flags.
-		&vertexBufferData
-	);
+	//// Attempt to lock the vertex buffer and retrieve its data pointer.
+	//D3D11_MAPPED_SUBRESOURCE vertexBufferData = { nullptr };
+	//const HRESULT mapResult = m_id3d11DeviceContext->Map(
+	//	(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to the device interface to lock and retrieve data of.
+	//	0,													// The index slot of the resource we wish to map.
+	//	D3D11_MAP::D3D11_MAP_WRITE_DISCARD,					// Discard the last entry of the resource and use what is written.
+	//	0,													// Additional mapping create flags.
+	//	&vertexBufferData
+	//);
 
-	// Error check vertex buffer data retrieval and locking.
-	ENGINE_ASSERT_HRESULT(mapResult);
+	//// Error check vertex buffer data retrieval and locking.
+	//ENGINE_ASSERT_HRESULT(mapResult);
 
-	// Get the vertex buffer data pointer.
-	VertexAttributes* vertexData = (VertexAttributes*)vertexBufferData.pData;
+	//// Get the vertex buffer data pointer.
+	//VertexAttributes* vertexData = (VertexAttributes*)vertexBufferData.pData;
 
-	// Copy the contents of the vertex data into the vertex buffer pointer.
-	for (UINT i = 0; i < gpuModelData.Vertices.size(); ++i)
-	{
-		vertexData[i].Position = gpuModelData.Vertices[i].Position;
-		vertexData[i].Texture = gpuModelData.Vertices[i].Texture;
-	}
+	//// Copy the contents of the vertex data into the vertex buffer pointer.
+	//for (UINT i = 0; i < gpuModelData.Vertices.size(); ++i)
+	//{
+	//	vertexData[i].Position = gpuModelData.Vertices[i].Position;
+	//	vertexData[i].Texture = gpuModelData.Vertices[i].Texture;
+	//}
 
-	// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.
-	m_id3d11DeviceContext->Unmap(
-		(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to resource to unlock and invalidate mapped subresource pointer of.
-		0													// The slot of the GPU resource that is being unlocked.
-	);
+	//// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.
+	//m_id3d11DeviceContext->Unmap(
+	//	(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to resource to unlock and invalidate mapped subresource pointer of.
+	//	0													// The slot of the GPU resource that is being unlocked.
+	//);
 }
 

@@ -13,12 +13,16 @@
 #include <comdef.h>		// COM error reporting.
 #include <rpcdce.h>		// For UUID generation.
 #include <rpcnterr.h>	// For UUID error check.
+#include <shlwapi.h>	// For StrStr function.
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 
+#include <bitset>
+#include <queue>
 #include <unordered_map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -49,4 +53,5 @@ using namespace DirectX;
 #pragma comment(lib, "DirectXMesh.lib")
 
 #pragma comment(lib, "Rpcrt4.lib") // For UUID generation.
+#pragma comment(lib, "Shlwapi.lib") // For StrStr function.
 

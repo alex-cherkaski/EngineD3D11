@@ -143,6 +143,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Systems\GraphicsMeshRenderSystem.cpp" />
+    <ClCompile Include="Source\Systems\PhysicsSystem.cpp" />
+    <ClCompile Include="Source\ECS\ComponentIdGenerator.cpp" />
+    <ClCompile Include="Source\ECS\Registry.cpp" />
+    <ClCompile Include="Source\ECS\TagIdGenerator.cpp" />
+    <ClCompile Include="Source\EventManager\EventIdGenerator.cpp" />
+    <ClCompile Include="Source\SceneManager\SceneManager.cpp" />
+    <ClCompile Include="Source\ShaderManager\ShaderManager.cpp" />
     <ClCompile Include="Source\Cameras\ArcBallCamera.cpp" />
     <ClCompile Include="Source\Constants\Math.cpp" />
     <ClCompile Include="Source\InputManager\InputManager.cpp" />
@@ -160,9 +168,25 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\WinMain.cpp" />
+    <ClCompile Include="Source\TextureManager\TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Systems\GraphicsMeshRenderSystem.h" />
     <ClInclude Include="Includes\DirectXMesh\Utilities\WaveFrontReader.h" />
+    <ClInclude Include="Source\Systems\PhysicsSystem.h" />
+    <ClInclude Include="Source\ECS\ComponentIdGenerator.h" />
+    <ClInclude Include="Source\ECS\ComponentSet.h" />
+    <ClInclude Include="Source\ECS\Registry.h" />
+    <ClInclude Include="Source\ECS\System.h" />
+    <ClInclude Include="Source\ECS\TagIdGenerator.h" />
+    <ClInclude Include="Source\ECS\Types.h" />
+    <ClInclude Include="Source\EventManager\EventIdGenerator.h" />
+    <ClInclude Include="Source\EventManager\EventManager.h" />
+    <ClInclude Include="Source\SceneManager\SceneManager.h" />
+    <ClInclude Include="Source\Components\Components.h" />
+    <ClInclude Include="Source\MeshManager\MeshData.h" />
+    <ClInclude Include="Source\ShaderManager\ShaderData.h" />
+    <ClInclude Include="Source\ShaderManager\ShaderManager.h" />
     <ClInclude Include="Source\Cameras\ArcBallCamera.h" />
     <ClInclude Include="Source\Constants\Math.h" />
     <ClInclude Include="Source\InputManager\InputManager.h" />
@@ -176,6 +200,8 @@
     <ClInclude Include="Source\Macros.h" />
     <ClInclude Include="Source\MeshManager\MeshManager.h" />
     <ClInclude Include="Source\PCH.h" />
+    <ClInclude Include="Source\TextureManager\TextureData.h" />
+    <ClInclude Include="Source\TextureManager\TextureManager.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl">

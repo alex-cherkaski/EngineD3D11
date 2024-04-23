@@ -7,6 +7,10 @@ class CoreObject;
 struct VertexAttributes;
 struct GPUModelData;
 
+struct MeshData;
+struct ShaderData;
+struct TextureData;
+
 class Window final
 {
 	SINGLETON(Window);
@@ -104,6 +108,20 @@ public:
 
 	void CreatePixelShader(GPUModelData& gpuModelData);
 	void CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData);
+
+	void CreateDefaultVertexBuffer(MeshData& meshData);
+	//void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
+	void CreateIndexBuffer(MeshData& meshData);
+
+	void CreateInputLayout(ShaderData& shaderData);
+	void CreateVertexShader(ShaderData& shaderData);
+	void CreatePixelShader(ShaderData& shaderData);
+
+	void CreateShaderResourceViewFromFile(TextureData& textureData);
+
+	void UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix);
+
+	void DrawMesh(const MeshData& meshData, const ShaderData& shaderData, const TextureData& textureData);
 
 public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }

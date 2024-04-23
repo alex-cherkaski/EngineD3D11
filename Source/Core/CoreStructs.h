@@ -1,15 +1,15 @@
 #pragma once
 #include "PCH.h"
 
-struct VertexAttributes
-{
-	XMFLOAT3 Position = { NAN, NAN, NAN };
-	XMFLOAT3 Normal = { NAN, NAN, NAN };
-	XMFLOAT2 Texture = { NAN, NAN };
-};
-
 struct GPUTextureData
 {
+	struct VertexAttributes
+	{
+		XMFLOAT3 Position = { NAN, NAN, NAN };
+		XMFLOAT3 Normal = { NAN, NAN, NAN };
+		XMFLOAT2 Texture = { NAN, NAN };
+	};
+
 	std::wstring TextureFilePath;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView = nullptr;
@@ -21,6 +21,13 @@ struct GPUTextureData
 
 struct GPUModelData
 {
+	struct VertexAttributes
+	{
+		XMFLOAT3 Position = { NAN, NAN, NAN };
+		XMFLOAT3 Normal = { NAN, NAN, NAN };
+		XMFLOAT2 Texture = { NAN, NAN };
+	};
+
 	std::wstring VertexShaderPath;
 	std::wstring PixelShaderPath;
 

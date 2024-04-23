@@ -2,46 +2,92 @@
 #include "MeshManager.h"
 #include "Core/Core.h"
 
-void MeshManager::Initialize()
-{
-	//CreateMesh("Space Ship", "./Resources/Models/SciFi_Fighter_AK5.obj");
-	//const auto a = CreateMesh(L"Cube", L"./Resources/Models/capsule.obj");
-	const auto b = CreateMesh(L"Spot", L"./Resources/Models/spot_triangulated.obj");
-	//const auto c = CreateMesh(L"Ogre", L"./Resources/Models/bs_rest.obj");
+//void MeshManager::Initialize()
+//{
+//	//CreateMesh("Space Ship", "./Resources/Models/SciFi_Fighter_AK5.obj");
+//	//const auto a = CreateMesh(L"Cube", L"./Resources/Models/capsule.obj");
+//	const auto b = CreateMesh(L"Spot", L"./Resources/Models/spot_triangulated.obj");
+//	//const auto c = CreateMesh(L"Ogre", L"./Resources/Models/bs_rest.obj");
+//
+//	int breakpoint = 0;
+//}
 
-	int breakpoint = 0;
+const MeshData& MeshManager::CreateMeshData(const wchar_t* name, const wchar_t* path)
+{
+	// Ensure there are no previous entries for a mesh with the same name stored in the mesh data map.
+	ENGINE_ASSERT_W(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name);
+
+	// Load the mesh and get an instance of the mesh data struct from the map.
+	Mesh mesh = LoadMesh(path);
+	MeshData& meshData = m_meshDataMap[name];
+	
+	// Copy over the mesh vertex attributes.
+	meshData.Vertices.resize(mesh.vertices.size());
+	for (size_t i = 0; i < mesh.vertices.size(); ++i)
+	{
+		meshData.Vertices[i].Position = mesh.vertices[i].position;
+		meshData.Vertices[i].Normal = mesh.vertices[i].normal;
+		meshData.Vertices[i].Texture = mesh.vertices[i].textureCoordinate;
+	}
+
+	// Copy over the mesh index data.
+	meshData.Indices.resize(mesh.indices.size());
+	for (size_t i = 0; i < mesh.indices.size(); ++i)
+	{
+		meshData.Indices[i] = mesh.indices[i];
+	}
+
+	// Create the GPU side vertex and index buffers, and set the primitive topology enum.
+	Renderer& renderer = Renderer::GetInstanceWrite();
+	renderer.CreateDefaultVertexBuffer(meshData);
+	renderer.CreateIndexBuffer(meshData);
+	meshData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	return meshData;
 }
 
-const Mesh& MeshManager::CreateMesh(const wchar_t* name, const wchar_t* path)
+bool MeshManager::HaveMeshData(const wchar_t* name)
 {
-	ENGINE_ASSERT_W(m_meshMap.find(name) == m_meshMap.cend(), "Mesh with name %s already exists.", name);
-	
-	Mesh& newMesh = m_meshMap[name];
-	newMesh.Load(path, false);
-	ENGINE_ASSERT_W(!newMesh.vertices.empty(), "Failed to load mesh %s from %s.", name, path);
+	// Attempt to search for an entry with a matching name key.
+	return m_meshDataMap.find(name) != m_meshDataMap.cend();
+}
+
+const MeshData& MeshManager::GetMeshDataRead(const wchar_t* name) const
+{
+	// Attempt to search for an entry with a matching name key, and if found return it.
+	const auto constIterator = m_meshDataMap.find(name);
+	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name);
+	return constIterator->second;
+}
+
+void MeshManager::DeleteMeshData(const wchar_t* name)
+{
+	// Attempt to search for an entry with a matching name key, and if found erase it.
+	const auto constIterator = m_meshDataMap.find(name);
+	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name);
+	m_meshDataMap.erase(constIterator);
+}
+
+const Mesh MeshManager::LoadMesh(const wchar_t* path)
+{
+	Mesh mesh;
+	mesh.Load(path, false);
+	ENGINE_ASSERT_W(!mesh.vertices.empty(), "Failed to load mesh from %s.", path);
 
 	// Convert the GL mesh UVs to D3D mesh UVs.
-	for (auto& vertex : newMesh.vertices)
+	for (auto& vertex : mesh.vertices)
 	{
 		//vertex.textureCoordinate.x *= -1;
 		vertex.textureCoordinate.y *= -1;
 		std::swap(vertex.position.y, vertex.position.z);
 	}
 
-	if (!newMesh.hasNormals)
+	if (!mesh.hasNormals)
 	{
-		GenerateMeshNormals(newMesh);
+		GenerateMeshNormals(mesh);
 	}
-
 	
-	return newMesh;
-}
-
-const Mesh& MeshManager::GetMesh(const wchar_t* name) const
-{
-	const auto constIterator = m_meshMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_meshMap.cend(), "Failed to find mesh %s.", name);
-	return constIterator->second;
+	return mesh;
 }
 
 void MeshManager::GenerateMeshNormals(Mesh& mesh)

@@ -183,50 +183,50 @@ void CoreObjectManager::Initialize3DModels()
 
 void CoreObjectManager::Initialize3DMeshes()
 {
-	// Generate a model data struct to fill with all the GPU relevant handles.
-	CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
-	CoreObject coreObject(gpuDataManager.GenerateGUID());
-	GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
+	//// Generate a model data struct to fill with all the GPU relevant handles.
+	//CoreGPUDataManager& gpuDataManager = CoreGPUDataManager::GetInstanceWrite();
+	//CoreObject coreObject(gpuDataManager.GenerateGUID());
+	//GPUModelData& modelData = gpuDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
 
-	modelData.GPUTextureDatas.resize(16);
+	//modelData.GPUTextureDatas.resize(16);
 
-	// Set the shader of the core object.
-	modelData.VertexShaderPath = L"./Source/Shaders/LightingShader.hlsl";
-	modelData.PixelShaderPath = L"./Source/Shaders/LightingShader.hlsl";
-	modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Textures/spot_texture.png";
+	//// Set the shader of the core object.
+	//modelData.VertexShaderPath = L"./Source/Shaders/LightingShader.hlsl";
+	//modelData.PixelShaderPath = L"./Source/Shaders/LightingShader.hlsl";
+	//modelData.GPUTextureDatas[0].TextureFilePath = L"./Resources/Textures/spot_texture.png";
 
-	const MeshManager& meshManager = MeshManager::GetInstanceRead();
-	const Mesh& mesh = meshManager.GetMesh(L"Spot");
+	//const MeshManager& meshManager = MeshManager::GetInstanceRead();
+	//const Mesh& mesh = meshManager.GetMesh(L"Spot");
 
-	// Set the vertex data of the core object
-	modelData.Vertices.resize(mesh.vertices.size());
-	for (size_t i = 0; i < mesh.vertices.size(); ++i)
-	{
-		modelData.Vertices[i].Position = mesh.vertices[i].position;
-		modelData.Vertices[i].Normal = mesh.vertices[i].normal;
-		modelData.Vertices[i].Texture = mesh.vertices[i].textureCoordinate;
-	}
+	//// Set the vertex data of the core object
+	//modelData.Vertices.resize(mesh.vertices.size());
+	//for (size_t i = 0; i < mesh.vertices.size(); ++i)
+	//{
+	//	modelData.Vertices[i].Position = mesh.vertices[i].position;
+	//	modelData.Vertices[i].Normal = mesh.vertices[i].normal;
+	//	modelData.Vertices[i].Texture = mesh.vertices[i].textureCoordinate;
+	//}
 
-	// Set the index data of the core object.
-	modelData.Indices = mesh.indices;
+	//// Set the index data of the core object.
+	//modelData.Indices = mesh.indices;
 
-	Renderer& renderer = Renderer::GetInstanceWrite();
+	//Renderer& renderer = Renderer::GetInstanceWrite();
 
-	// Create the vertex relevant GPU data.
-	renderer.CreateDefaultVertexBuffer(modelData);
-	renderer.CreateIndexBuffer(modelData);
-	renderer.CreateVertexShader(modelData);
-	renderer.CreateInputLayout(modelData);
+	//// Create the vertex relevant GPU data.
+	//renderer.CreateDefaultVertexBuffer(modelData);
+	//renderer.CreateIndexBuffer(modelData);
+	//renderer.CreateVertexShader(modelData);
+	//renderer.CreateInputLayout(modelData);
 
-	// Create the pixel relevant GPU data.
-	renderer.CreatePixelShader(modelData);
-	renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
+	//// Create the pixel relevant GPU data.
+	//renderer.CreatePixelShader(modelData);
+	//renderer.CreateShaderResourceViewFromFile(modelData.GPUTextureDatas[0]);
 
-	// Set the output merger stage topology settings.
-	modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	//// Set the output merger stage topology settings.
+	//modelData.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-	// Add an instance of the core object to run with.
-	m_core3DModels.push_back(coreObject);
+	//// Add an instance of the core object to run with.
+	//m_core3DModels.push_back(coreObject);
 }
 
 void CoreObjectManager::SetUIText(GPUModelData& gpuModelData)
