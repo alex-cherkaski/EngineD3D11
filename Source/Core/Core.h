@@ -1,11 +1,5 @@
 #pragma once
-#include "PCH.h"
-#include "CoreStructs.h"
 #include "Macros.h"
-
-class CoreObject;
-struct VertexAttributes;
-struct GPUModelData;
 
 struct MeshData;
 struct ShaderData;
@@ -90,9 +84,6 @@ private:
 	void CreateViewPort();
 
 	void Clear();
-	void DrawSprites(const CoreObject& coreObject);
-	void DrawUITexts(const CoreObject& coreObject);
-	void Draw3DModels(const CoreObject& coreObject);
 	void Present();
 
 	void CreatePerMeshConstantBuffer();
@@ -100,15 +91,6 @@ private:
 	void CreateProjectionConstantBuffer();
 
 public:
-	void CreateDefaultVertexBuffer(GPUModelData& gpuModelData);
-	void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
-	void CreateIndexBuffer(GPUModelData& gpuModelData);
-	void CreateVertexShader(GPUModelData& gpuModelData);
-	void CreateInputLayout(GPUModelData& gpuModelData);
-
-	void CreatePixelShader(GPUModelData& gpuModelData);
-	void CreateShaderResourceViewFromFile(GPUTextureData& gpuTextureData);
-
 	void CreateDefaultVertexBuffer(MeshData& meshData);
 	//void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
 	void CreateIndexBuffer(MeshData& meshData);
@@ -127,12 +109,11 @@ public:
 	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 
 private:
-	void UpdatePerMeshConstantBuffer(const CoreObject& coreObject);
 	void UpdatePerFrameConstantBuffer();
 	void UpdateProjectionConstantBuffer();
 
 private:
-	void WriteUITextData(const CoreObject& coreObject);
+	//void WriteUITextData(const CoreObject& coreObject);
 
 private:
 	XMMATRIX m_viewMatrix = XMMatrixIdentity();
