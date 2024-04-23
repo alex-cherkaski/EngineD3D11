@@ -105,20 +105,12 @@ public:
 
 	void DrawMesh(const MeshData& meshData, const ShaderData& shaderData, const TextureData& textureData);
 
-public:
-	const XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
-
 private:
 	void UpdatePerFrameConstantBuffer();
 	void UpdateProjectionConstantBuffer();
 
 private:
 	//void WriteUITextData(const CoreObject& coreObject);
-
-private:
-	XMMATRIX m_viewMatrix = XMMatrixIdentity();
-	XMMATRIX m_projectionMatrix = XMMatrixIdentity();
-	XMMATRIX m_viewProjectionMatrix = XMMatrixIdentity();
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_id3d11Device = nullptr;
