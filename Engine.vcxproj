@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\SceneManager\Scene.cpp" />
     <ClCompile Include="Source\Systems\GraphicsMeshRenderSystem.cpp" />
     <ClCompile Include="Source\Systems\PhysicsSystem.cpp" />
     <ClCompile Include="Source\ECS\ComponentIdGenerator.cpp" />
@@ -168,6 +169,8 @@
     <ClCompile Include="Source\TextureManager\TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\SceneManager\Scene.h" />
+    <ClInclude Include="Source\SceneManager\SceneReader.h" />
     <ClInclude Include="Source\Systems\GraphicsMeshRenderSystem.h" />
     <ClInclude Include="Includes\DirectXMesh\Utilities\WaveFrontReader.h" />
     <ClInclude Include="Source\Systems\PhysicsSystem.h" />
@@ -283,6 +286,10 @@
     <Image Include="Resources\Images\Font.dds" />
     <Image Include="Resources\Images\PNG_transparency_demonstration_1.png" />
     <Image Include="Resources\Images\Stone_Wall.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="Resources\Scenes\TestConfigInNamespace.xml" />
+    <Xml Include="Resources\Scenes\Viking_Room.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,6 +14,7 @@
 #include <rpcdce.h>		// For UUID generation.
 #include <rpcnterr.h>	// For UUID error check.
 #include <shlwapi.h>	// For StrStr function.
+#include <xmllite.h>	// For XML reader.
 
 #include <cassert>
 #include <cstdio>
@@ -52,6 +53,6 @@ using namespace DirectX;
 #pragma comment(lib, "DirectXTK.lib")
 #pragma comment(lib, "DirectXMesh.lib")
 
-#pragma comment(lib, "Rpcrt4.lib") // For UUID generation.
+#pragma comment(lib, "Rpcrt4.lib")	// For UUID generation.
 #pragma comment(lib, "Shlwapi.lib") // For StrStr function.
-
+#pragma comment(lib, "XmlLite.lib")	// For XML reader.

@@ -55,7 +55,7 @@ PS_Input VS_Main(VS_Input input)
     output.normal = normalize(input.normal);
     
     // Calculate the light vector direction that will be forwarded to the pixel shader.
-    const float3 lightPosition = float3(0.0f, 0.0f, 4.0f);
+    const float3 lightPosition = float3(0.0f, 0.0f, 0.0f);
     output.lightVector = normalize(lightPosition - input.position);
     
     // Calculate the camera direction vector that will be forwarded to the pixel shader.
@@ -84,14 +84,14 @@ float4 PS_Main(PS_Input input) : SV_TARGET
         const float3 halfVector = normalize(input.lightVector + input.viewVector);
         
         // Calculate the final specular term value.
-        specularTerm = pow(saturate(dot(input.normal, halfVector)), 255);
+        specularTerm = pow(saturate(dot(input.normal, halfVector)), 25);
     }
     
     // Sample the first texture for its color using the vertex texture coordinate.
     const float4 textureColor0 = inputTexture0.Sample(textureSampler, input.texture0);
     
     // Calculate the final pixel color based on the texture color, light color, ambient light, and diffuse and specular terms.
-    const float4 finalColor = textureColor0 * ambientColor + lightColor * diffuseTerm + lightColor * specularTerm;
+    const float4 finalColor = textureColor0; //* ambientColor + lightColor * diffuseTerm + lightColor * specularTerm;
     
     return finalColor;
 }
