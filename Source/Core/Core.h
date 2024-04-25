@@ -55,6 +55,10 @@ private:
 	void Render();
 	void EndFrame();
 
+	void InitializeCOM();
+	void InitializePerformanceFrequency();
+	void InitializeThreadAffinity();
+
 	float ComputeDeltaTime();
 
 private:
@@ -82,6 +86,7 @@ private:
 	void CreateSamplerState();
 	void CreateConstantBuffers();
 	void CreateViewPort();
+	void CreateRasterizerState();
 
 	void Clear();
 	void Present();
@@ -128,6 +133,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_id3d11BlendState = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_id3d11SamplerState = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_id3d11RasterizerState = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerMesh = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerFrame = nullptr;

@@ -235,30 +235,9 @@ void Window::CalculateFrameBufferDimensions()
 
 void Engine::Initialize(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
-	// Attempt to initialize COM.
-	const DWORD flags = COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE;
-	const HRESULT initCOMResult = CoInitializeEx(
-		nullptr,	// Reserved and must be null.
-		flags		// COM initialization flags. We will be single threaded and no Object Linking or Embedding, which is obsolete.
-	);
-
-	// Error check COM initialization.
-	ENGINE_ASSERT_HRESULT(initCOMResult);
-
-	// Get the performance counter frequency.
-	const BOOL queryPerformanceFrequencyResult = QueryPerformanceFrequency(&m_performanceCounterFrequency);
-	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
-
-	// Set the thread's affinity to run on the same CPU core.
-	const HANDLE currentThreadHandle = GetCurrentThread();
-	const DWORD threadAffinityMask = 1 << GetCurrentProcessorNumber();
-	const DWORD_PTR setThreadAffinityMaskResult = SetThreadAffinityMask(
-		currentThreadHandle,	// The handle to the thread we are setting.
-		threadAffinityMask		// The mask representing the CPU core the thread will be tied to.
-	);
-
-	// Error check main thread affinity mask setting.
-	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to SetThreadAffinityMask.");
+	InitializeCOM();
+	InitializePerformanceFrequency();
+	InitializeThreadAffinity();
 
 	Logger::GetInstanceWrite().Initialize();
 	Window::GetInstanceWrite().Initialize(hInstance, lpCmdLine, nShowCmd);
@@ -287,7 +266,6 @@ void Engine::Shutdown()
 void Engine::Setup()
 {
 	SceneManager::GetInstanceWrite().Initialize();
-	//CoreObjectManager::GetInstanceWrite().Initialize();
 	ArcBallCamera::GetInstanceWrite().SetTargetPosition({ 0.0f, 0.0f, 6.0f });
 
 	m_isRunning = true;
@@ -328,6 +306,40 @@ void Engine::EndFrame()
 	inputManager.SignalMouseEndOfInputFrame();
 }
 
+void Engine::InitializeCOM()
+{
+	// Attempt to initialize COM.
+	const DWORD flags = COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE;
+	const HRESULT initCOMResult = CoInitializeEx(
+		nullptr,	// Reserved and must be null.
+		flags		// COM initialization flags. We will be single threaded and no Object Linking or Embedding, which is obsolete.
+	);
+
+	// Error check COM initialization.
+	ENGINE_ASSERT_HRESULT(initCOMResult);
+}
+
+void Engine::InitializePerformanceFrequency()
+{
+	// Get the performance counter frequency.
+	const BOOL queryPerformanceFrequencyResult = QueryPerformanceFrequency(&m_performanceCounterFrequency);
+	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
+}
+
+void Engine::InitializeThreadAffinity()
+{
+	// Set the thread's affinity to run on the same CPU core.
+	const HANDLE currentThreadHandle = GetCurrentThread();
+	const DWORD threadAffinityMask = 1 << GetCurrentProcessorNumber();
+	const DWORD_PTR setThreadAffinityMaskResult = SetThreadAffinityMask(
+		currentThreadHandle,	// The handle to the thread we are setting.
+		threadAffinityMask		// The mask representing the CPU core the thread will be tied to.
+	);
+
+	// Error check main thread affinity mask setting.
+	ENGINE_ASSERT_W(setThreadAffinityMaskResult, "Failed to SetThreadAffinityMask.");
+}
+
 float Engine::ComputeDeltaTime()
 {
 	// Get the performance counter value for the current frame.
@@ -359,6 +371,7 @@ void Renderer::Initialize()
 	CreateSamplerState();
 	CreateConstantBuffers();
 	CreateViewPort();
+	CreateRasterizerState();
 
 	UpdateProjectionConstantBuffer();
 
@@ -605,6 +618,28 @@ void Renderer::CreateViewPort()
 		1,						// The number of view ports to set.
 		&viewPortDescription	// Pointer to the array of viewport descriptors.
 	);
+}
+
+void Renderer::CreateRasterizerState()
+{
+	// Initialize the rasterizer state struct.
+	D3D11_RASTERIZER_DESC rasterizerDescriptor = { };
+	rasterizerDescriptor.AntialiasedLineEnable = TRUE;					// Is anti-aliasing enabled.
+	rasterizerDescriptor.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;	// How to cull front and back triangles.
+	rasterizerDescriptor.MultisampleEnable = TRUE;						// Is multi-sampling enabled.
+	rasterizerDescriptor.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;	// How trialges should be filled.
+
+	// Attempt to create the rasterizer state.
+	const HRESULT createRasterizerStateResult = m_id3d11Device->CreateRasterizerState(
+		&rasterizerDescriptor,						// Pointer to the rasterizer state descriptor struct.
+		m_id3d11RasterizerState.GetAddressOf()		// Pointer to the returned rasterizer state interface.
+	);
+
+	// Error check rasterizer state creation.
+	ENGINE_ASSERT_HRESULT(createRasterizerStateResult);
+
+	// Set the rasterizer state.
+	m_id3d11DeviceContext->RSSetState(m_id3d11RasterizerState.Get());
 }
 
 void Renderer::Clear()
