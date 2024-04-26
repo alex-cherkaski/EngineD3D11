@@ -667,54 +667,57 @@ void Renderer::Clear()
 //	DrawSprites(coreObject);
 //}
 
-void Renderer::DrawMesh(const MeshData& meshData, const ShaderData& shaderData, const TextureData& textureData)
+void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData/* = nullptr */)
 {
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexAttributes);
 	const UINT offset = 0;
 
 	// Set the input layout for the current model
-	m_id3d11DeviceContext->IASetInputLayout(shaderData.InputLayout.Get());
+	m_id3d11DeviceContext->IASetInputLayout(shaderData->InputLayout.Get());
 
 	// Set the vertex buffer for the current model.
 	m_id3d11DeviceContext->IASetVertexBuffers(
 		0,										// The slot to be used for this set of vertex buffer.
 		1,										// The number of vertex buffers in the vertex buffer array.
-		meshData.VertexBuffer.GetAddressOf(),	// The array of vertex buffers to set.
+		meshData->VertexBuffer.GetAddressOf(),	// The array of vertex buffers to set.
 		&stride,								// The stride from one vertex element to the next.
 		&offset									// The offset until the first vertex element in the buffer.
 	);
 
 	// Set the index buffer for the current model.
 	m_id3d11DeviceContext->IASetIndexBuffer(
-		meshData.IndexBuffer.Get(),				// Pointer to the index buffer interface to set.
+		meshData->IndexBuffer.Get(),				// Pointer to the index buffer interface to set.
 		DXGI_FORMAT::DXGI_FORMAT_R32_UINT,		// The format of the index buffer to set.
 		0										// Offset from the start of the index buffer to the first index to use.
 	);
 
 	// Set the primitive topology setting to draw the vertices with.
-	m_id3d11DeviceContext->IASetPrimitiveTopology(meshData.PrimitiveTopology);
+	m_id3d11DeviceContext->IASetPrimitiveTopology(meshData->PrimitiveTopology);
 
 	// Set the vertex shader to draw with.
 	m_id3d11DeviceContext->VSSetShader(
-		shaderData.VertexShader.Get(),		// Pointer to the vertex shader interface to set.
+		shaderData->VertexShader.Get(),		// Pointer to the vertex shader interface to set.
 		nullptr,							// Optional array of ID3D11ClassInstance.
 		0									// Number of entries in the optional array of ID3D11ClassInstance.
 	);
 
 	// Set the pixel shader to draw with.
 	m_id3d11DeviceContext->PSSetShader(
-		shaderData.PixelShader.Get(),		// Pointer to the pixel shader interface to set.
+		shaderData->PixelShader.Get(),		// Pointer to the pixel shader interface to set.
 		nullptr,							// Optional array of ID3D11ClassInstance.
 		0									// Number of entries in the optional array of ID3D11ClassInstance.
 	);
 
-	// Set the pixel shader resource view to use to set the shader texture.
-	m_id3d11DeviceContext->PSSetShaderResources(
-		0,												// The index of the shader resource we want to set.
-		1,												// The number of shader resources in the share resource array.
-		textureData.ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
-	);
+	if (textureData)
+	{
+		// Set the pixel shader resource view to use to set the shader texture.
+		m_id3d11DeviceContext->PSSetShaderResources(
+			0,												// The index of the shader resource we want to set.
+			1,												// The number of shader resources in the share resource array.
+			textureData->ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+		);
+	}
 
 	// Set the pixel shader sampler state to sample the texture.
 	m_id3d11DeviceContext->PSSetSamplers(
@@ -732,7 +735,7 @@ void Renderer::DrawMesh(const MeshData& meshData, const ShaderData& shaderData, 
 
 	// Draw the model.
 	m_id3d11DeviceContext->DrawIndexed(
-		(UINT)meshData.Indices.size(),		// The number of indices to draw.
+		(UINT)meshData->Indices.size(),		// The number of indices to draw.
 		0,									// The index of the first index value.
 		0									// Value added to each index before reading from the vertex buffer.
 	);

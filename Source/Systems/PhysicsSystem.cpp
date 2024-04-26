@@ -25,12 +25,17 @@ void PhysicsSystem::Update(float deltaTime)
 			const float yaw = XMConvertToRadians(physicsComponent.AngularVelocity.y * deltaTime);
 			const float roll = XMConvertToRadians(physicsComponent.AngularVelocity.z * deltaTime);
 
-			// Construct the rotation matrix.
+			const float xPosition = transformComponent.Transform._41;
+			const float yPosition = transformComponent.Transform._42;
+			const float zPosition = transformComponent.Transform._43;
+
+			const XMMATRIX localSpace = XMMatrixTranslation(-xPosition, -yPosition, -zPosition);
 			const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+			const XMMATRIX worldSpace = XMMatrixTranslation(xPosition, yPosition, zPosition);
 
 			// Update the transform component's rotation.
 			XMMATRIX transform = XMLoadFloat4x4(&transformComponent.Transform);
-			transform *= rotationMatrix;
+			transform *= localSpace * rotationMatrix * worldSpace;
 			XMStoreFloat4x4(&transformComponent.Transform, transform);
 		}
 

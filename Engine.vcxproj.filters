@@ -170,7 +170,8 @@
     <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl" />
     <FxCompile Include="Source\Shaders\ColorShiftingShader.hlsl" />
     <FxCompile Include="Source\Shaders\MultiTexturingShader.hlsl" />
-    <FxCompile Include="Source\Shaders\LightingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\TextureLightingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\TextureShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
@@ -185,7 +186,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="Resources\Scenes\TestConfigInNamespace.xml" />
     <Xml Include="Resources\Scenes\Viking_Room.xml" />
   </ItemGroup>
 </Project>

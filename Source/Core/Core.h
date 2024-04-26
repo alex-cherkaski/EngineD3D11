@@ -108,7 +108,7 @@ public:
 
 	void UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix);
 
-	void DrawMesh(const MeshData& meshData, const ShaderData& shaderData, const TextureData& textureData);
+	void DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr);
 
 private:
 	void UpdatePerFrameConstantBuffer();

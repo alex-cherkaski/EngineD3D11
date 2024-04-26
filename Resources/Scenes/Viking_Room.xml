@@ -4,7 +4,7 @@
 		<Mesh Name="Viking_Room_Mesh" IsOpenGLMesh="True">./Resources/Meshes/viking_room.obj</Mesh>
 	</Meshes>
 	<Shaders>
-		<Shader Name="Lighting_Shader">./Source/Shaders/LightingShader.hlsl</Shader>
+		<Shader Name="Texture_Shader">./Source/Shaders/TextureShader.hlsl</Shader>
 	</Shaders>
 	<Textures>
 		<Texture Name="Viking_Room_Texture">./Resources/Textures/viking_room.png</Texture>
@@ -30,13 +30,13 @@
 				yTranslation="0.0f"
 				zTranslation="0.0f"
 				xRotation="0.0f"
-				yRotation="0.0f"
+				yRotation="10.0f"
 				zRotation="0.0f"
 			>
 			</PhysicsComponent>
 			<GraphicsMeshComponent
 				MeshName="Viking_Room_Mesh"
-				ShaderName="Lighting_Shader"
+				ShaderName="Texture_Shader"
 				TextureName="Viking_Room_Texture"
 			>
 			</GraphicsMeshComponent>

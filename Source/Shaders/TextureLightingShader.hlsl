@@ -91,7 +91,7 @@ float4 PS_Main(PS_Input input) : SV_TARGET
     const float4 textureColor0 = inputTexture0.Sample(textureSampler, input.texture0);
     
     // Calculate the final pixel color based on the texture color, light color, ambient light, and diffuse and specular terms.
-    const float4 finalColor = textureColor0; //* ambientColor + lightColor * diffuseTerm + lightColor * specularTerm;
+    const float4 finalColor = textureColor0 * ambientColor + lightColor * diffuseTerm + lightColor * specularTerm;
     
     return finalColor;
 }

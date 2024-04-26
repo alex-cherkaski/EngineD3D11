@@ -31,6 +31,7 @@ void Scene::Render()
 void Scene::Shutdown()
 {
 	Registry::GetInstanceWrite().Shutdown();
+	EventManager::GetInstanceWrite().Shutdown();
 
 	MeshManager::GetInstanceWrite().Clear();
 	ShaderManager::GetInstanceWrite().Clear();
@@ -391,7 +392,11 @@ void Scene::ProcessGraphicsMeshComponentNode(const Node& node)
 	// Fill the graphics mesh component data fields.
 	graphicsMeshComponent.MeshName = node.attributes[0].value;
 	graphicsMeshComponent.ShaderName = node.attributes[1].value;
-	graphicsMeshComponent.TextureName = node.attributes[2].value;
+
+	if (node.attributes.size() > 2)
+	{
+		graphicsMeshComponent.TextureName = node.attributes[2].value;
+	}
 
 	// Add the graphics mesh component to the entity.
 	Registry& registry = Registry::GetInstanceWrite();

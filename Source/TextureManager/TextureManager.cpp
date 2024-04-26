@@ -21,7 +21,7 @@ const TextureData& TextureManager::CreateTextureData(const std::wstring& name, c
 	return textureData;
 }
 
-bool TextureManager::HaveTextureData(const std::wstring& name)
+bool TextureManager::HaveTextureData(const std::wstring& name) const
 {
 	// Attempt to search for an entry with a matching name key.
 	return m_textureDataMap.find(name) != m_textureDataMap.cend();

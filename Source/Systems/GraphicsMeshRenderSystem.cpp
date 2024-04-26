@@ -37,13 +37,22 @@ void GraphicsMeshRenderSystem::Render()
 		// Retrieve the relevant graphics data.
 		const MeshData& meshData = meshManager.GetMeshDataRead(graphicsMeshComponent.MeshName);
 		const ShaderData& shaderData = shaderManager.GetShaderDataRead(graphicsMeshComponent.ShaderName);
-		const TextureData& textureData = textureManager.GetTextureDataRead(graphicsMeshComponent.TextureName);
 
 		// Update the GPU constant buffer with the entity model/world matrix.
 		renderer.UpdatePerMeshConstantBuffer(transformComponent.Transform);
 
-		// Draw the mesh using the relevant mesh data.
-		renderer.DrawMesh(meshData, shaderData, textureData);
+		if (graphicsMeshComponent.TextureName)
+		{
+			const TextureData& textureData = textureManager.GetTextureDataRead(graphicsMeshComponent.TextureName);
+
+			// Draw the mesh using the relevant mesh data.
+			renderer.DrawMesh(&meshData, &shaderData, &textureData);
+		}
+
+		else
+		{
+			renderer.DrawMesh(&meshData, &shaderData);
+		}
 	}
 }
 
