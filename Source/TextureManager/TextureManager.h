@@ -7,14 +7,14 @@ class TextureManager final
 	SINGLETON(TextureManager);
 
 public:
-	const TextureData& CreateTextureData(const wchar_t* name, const wchar_t* path);
-	bool HaveTextureData(const wchar_t* name);
-	const TextureData& GetTextureDataRead(const wchar_t* name) const;
-	void DeleteTextureData(const wchar_t* name);
+	const TextureData& CreateTextureData(const std::wstring& name, const std::wstring& path);
+	bool HaveTextureData(const std::wstring& name);
+	const TextureData& GetTextureDataRead(const std::wstring& name) const;
+	void DeleteTextureData(const std::wstring& name);
 
 	void Clear() { m_textureDataMap.clear(); }
 
 private:
-	std::unordered_map<const wchar_t*, TextureData> m_textureDataMap;
+	std::unordered_map<std::wstring, TextureData> m_textureDataMap;
 };
 

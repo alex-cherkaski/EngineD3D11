@@ -278,16 +278,16 @@ void Engine::ProcessInput()
 
 void Engine::Update()
 {
-	const float delatTime = ENGINE_CLAMP_F(ComputeDeltaTime(), 0.0f, 0.05f);
+	const float deltaTime = ENGINE_CLAMP_F(ComputeDeltaTime(), 0.0f, 0.05f);
 
-	FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceWrite();
-	firstPersonCamera.Update(delatTime);
+	static FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceWrite();
+	firstPersonCamera.Update(deltaTime);
 
-	ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
-	arcBallCamera.Update(delatTime);
+	static ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceWrite();
+	arcBallCamera.Update(deltaTime);
 
-	static Registry& registry = Registry::GetInstanceWrite();
-	registry.RunSystemsUpdate(delatTime);
+	static SceneManager& sceneManager = SceneManager::GetInstanceWrite();
+	sceneManager.Update(deltaTime);
 }
 
 void Engine::Render()
@@ -417,8 +417,11 @@ void Renderer::Render()
 	//	Draw3DModels(coreObject);
 	//}
 
-	static Registry& registry = Registry::GetInstanceWrite();
-	registry.RunSystemsRender();
+	//static Registry& registry = Registry::GetInstanceWrite();
+	//registry.RunSystemsRender();
+
+	static SceneManager& sceneManager = SceneManager::GetInstanceWrite();
+	sceneManager.Render();
 
 	Present();
 }

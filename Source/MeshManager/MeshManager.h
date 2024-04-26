@@ -9,18 +9,18 @@ class MeshManager final
 	SINGLETON(MeshManager);
 
 public:
-	const MeshData& CreateMeshData(const wchar_t* name, const wchar_t* path, bool isOpenGLMesh = false);
-	bool HaveMeshData(const wchar_t* name);
-	const MeshData& GetMeshDataRead(const wchar_t* name) const;
-	void DeleteMeshData(const wchar_t* name);
+	const MeshData& CreateMeshData(const std::wstring& name, const std::wstring& path, bool isOpenGLMesh = false);
+	bool HaveMeshData(const std::wstring& name);
+	const MeshData& GetMeshDataRead(const std::wstring& name) const;
+	void DeleteMeshData(const std::wstring& name);
 
 	void Clear() { m_meshDataMap.clear(); }
 
 private:
-	std::unique_ptr<Mesh> LoadMesh(const wchar_t* path, bool isOpenGLMesh = false);
+	std::unique_ptr<Mesh> LoadMesh(const std::wstring& path, bool isOpenGLMesh = false);
 	void GenerateMeshNormals(Mesh& mesh);
 
 private:
-	std::unordered_map<const wchar_t*, MeshData> m_meshDataMap;
+	std::unordered_map<std::wstring, MeshData> m_meshDataMap;
 };
 

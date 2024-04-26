@@ -10,38 +10,22 @@
 
 void SceneManager::Initialize()
 {
-	CreateSceneData();
-	CreateEntities();
-	CreateSystems();
 	LoadScene(L"./Resources/Scenes/Viking_Room.xml");
 }
 
 void SceneManager::Update(float deltaTime)
 {
-	static Registry& registry = Registry::GetInstanceWrite();
-	registry.RunSystemsUpdate(deltaTime);
-
 	m_currentScene->Update(deltaTime);
 }
 
 void SceneManager::Render()
 {
-	static Registry& registry = Registry::GetInstanceWrite();
-	registry.RunSystemsRender();
-
 	m_currentScene->Render();
 }
 
-//void SceneManager::DeleteXMLFileReader(const wchar_t* name)
-//{
-//	// Attempt to find and erase the file reader.
-//	const auto constIterator = m_sceneReaderMap.find(name);
-//	ENGINE_ASSERT_W(m_sceneReaderMap.find(name) == m_sceneReaderMap.cend(), "Scene %s already exitst", name);
-//	m_sceneReaderMap.erase(constIterator);
-//}
-
 void SceneManager::LoadScene(const wchar_t* filePath)
 {
+	m_currentScene->Shutdown();
 	m_currentScene = std::make_unique<Scene>(filePath);
 }
 

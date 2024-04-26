@@ -1,6 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Scene Name="Viking_Room">
 	<Meshes>
-		<Mesh Name="Viking_Room_Mesh" IsOpenGLMesh="True">./Resources/Scenes/viking_room.obj</Mesh>
+		<Mesh Name="Viking_Room_Mesh" IsOpenGLMesh="True">./Resources/Meshes/viking_room.obj</Mesh>
 	</Meshes>
+	<Shaders>
+		<Shader Name="Lighting_Shader">./Source/Shaders/LightingShader.hlsl</Shader>
+	</Shaders>
+	<Textures>
+		<Texture Name="Viking_Room_Texture">./Resources/Textures/viking_room.png</Texture>
+	</Textures>
+	<Systems>
+		<System>GraphicsMeshRenderSystem</System>
+		<System>PhysicsSystem</System>
+	</Systems>
+	<Entities>
+		<Entity Name="Viking_Room"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="0.0f"	
+				yTranslation="0.0f"	
+				zTranslation="5.0f"	
+				xRotation="0.0f"
+				yRotation="90.0f"
+				zRotation="0.0f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="0.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Viking_Room_Mesh"
+				ShaderName="Lighting_Shader"
+				TextureName="Viking_Room_Texture"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+	</Entities>
 </Scene>

@@ -1,9 +1,25 @@
 #pragma once
 #include "SceneReader.h"
+#include "ECS/Types.h"
 
 class Scene final
 {
-	struct NodeValues
+	struct ElementValues
+	{
+		PCWSTR prefix = nullptr;
+		PCWSTR localName = nullptr;
+
+		UINT prefixSize = 0;
+		UINT localNameSize = 0;
+	};
+
+	struct TextValues
+	{
+		PCWSTR value = nullptr;
+		UINT valueSize = 0;
+	};
+
+	struct AttributeValues
 	{
 		PCWSTR prefix = nullptr;
 		PCWSTR localName = nullptr;
@@ -14,26 +30,24 @@ class Scene final
 		UINT valueSize = 0;
 	};
 
-	enum class ParseCategory
+	struct Node
 	{
-		NONE = 0,
-		ParsingMeshes,
-		ParsingShaderes,
-		ParsingTextures,
-		ParsingSystems,
-		ParsingEntities,
-		ParsingComponents,
+		ElementValues elementValues;
+		TextValues textValues;
+		std::vector<AttributeValues> attributes;
 	};
 
-	enum class ParseUnit
+	enum class ParseState : byte
 	{
 		NONE = 0,
-		ParsingMesh,
-		ParsingShader,
-		ParsingTexture,
-		ParsingSystem,
-		ParsingEntity,
-		ParsingComponent,
+		Mesh,
+		Shader,
+		Texture,
+		System,
+		Entity,
+		TransformComponent,
+		GraphicsMeshComponent,
+		PhysicsComponent
 	};
 
 public:
@@ -41,15 +55,36 @@ public:
 
 	void Update(float deltaTime);
 	void Render();
+	void Shutdown();
 
 private:
 	void CreateSceneReader(const wchar_t* filePath);
 	void ReadSceneFile();
-	void ReadAttributes();
+	void ReadAttributes(Node& node);
+
+	void SetParseState(const Node& node);
+	void ResetParseState();
+
+	void ConstructParseStateLookUpTable();
+
+	void ProcessNode(Node& node);
+	void ProcessMeshNode(const Node& node);
+	void ProcessShaderNode(const Node& node);
+	void ProcessTextureNode(const Node& node);
+	void ProcessSystemNode(const Node& node);
+	void ProcessEntityNode();
+
+	void ProcessTransfromComponentNode(const Node& node);
+	void ProcessGraphicsMeshComponentNode(const Node& node);
+	void ProcessPhysicsComponentNode(const Node& node);
 
 private:
+	std::stack<Node> m_nodeStack;
+	std::unordered_map<size_t, ParseState> m_parseStateLookUpTable;
+
 	SceneReader m_sceneReader;
-	ParseCategory m_currentParseCategory = ParseCategory::NONE;
-	ParseUnit m_currentPraseUnit = ParseUnit::NONE;
+	ParseState m_parseState = ParseState::NONE;
+
+	size_t m_lastProcessedEntity = 0;
 };
 

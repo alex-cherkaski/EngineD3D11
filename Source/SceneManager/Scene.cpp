@@ -1,19 +1,40 @@
 #include "PCH.h"
-#include "Scene.h"
+#include "Components/Components.h"
+#include "ECS/Registry.h"
 #include "Macros.h"
+#include "MeshManager/MeshManager.h"
+#include "Scene.h"
+#include "ShaderManager/ShaderManager.h"
+#include "Systems/PhysicsSystem.h"
+#include "Systems/GraphicsMeshRenderSystem.h"
+#include "TextureManager/TextureManager.h"
 
 Scene::Scene(const wchar_t* filePath)
 {
+	ConstructParseStateLookUpTable();
 	CreateSceneReader(filePath);
 	ReadSceneFile();
 }
 
 void Scene::Update(float deltaTime)
 {
+	static Registry& registry = Registry::GetInstanceWrite();
+	registry.RunSystemsUpdate(deltaTime);
 }
 
 void Scene::Render()
 {
+	static Registry& registry = Registry::GetInstanceWrite();
+	registry.RunSystemsRender();
+}
+
+void Scene::Shutdown()
+{
+	Registry::GetInstanceWrite().Shutdown();
+
+	MeshManager::GetInstanceWrite().Clear();
+	ShaderManager::GetInstanceWrite().Clear();
+	TextureManager::GetInstanceWrite().Clear();
 }
 
 void Scene::CreateSceneReader(const wchar_t* filePath)
@@ -58,14 +79,6 @@ void Scene::ReadSceneFile()
 {
 	while (!m_sceneReader.XMLReader->IsEOF())
 	{
-		PCWSTR prefix = nullptr;
-		PCWSTR localName = nullptr;
-		PCWSTR value = nullptr;
-
-		UINT prefixSize = 0;
-		UINT localNameSize = 0;
-		UINT valueSize = 0;
-
 		XmlNodeType nodeType;
 		const HRESULT readResult = m_sceneReader.XMLReader->Read(&nodeType);
 		ENGINE_ASSERT_HRESULT(readResult);
@@ -77,11 +90,21 @@ void Scene::ReadSceneFile()
 
 		case XmlNodeType_Element:
 		{
-			const HRESULT getPrefixResult = m_sceneReader.XMLReader->GetPrefix(&prefix, &prefixSize);
+			// Construct a new node on the stack, and retrieve its element values member for updating.
+			m_nodeStack.emplace();
+			Node& node = m_nodeStack.top();
+			ElementValues& elementValues = node.elementValues;
+
+			// Get the element prefix and local name.
+			const HRESULT getPrefixResult = m_sceneReader.XMLReader->GetPrefix(&elementValues.prefix, &elementValues.prefixSize);
 			ENGINE_ASSERT_HRESULT(getPrefixResult);
-			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
+			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&elementValues.localName, &elementValues.localNameSize);
 			ENGINE_ASSERT_HRESULT(getLocalNameResult);
-			ReadAttributes();
+
+			// Process all attribute for this opening element.
+			ReadAttributes(node);
+			SetParseState(node);
+			//SetComponentParseState(node);
 			break;
 		}
 
@@ -90,31 +113,34 @@ void Scene::ReadSceneFile()
 
 		case XmlNodeType_Text:
 		{
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			Node& node = m_nodeStack.top();
+			TextValues& textValues = node.textValues;
+
+			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&textValues.value, &textValues.valueSize);
 			ENGINE_ASSERT_HRESULT(getValueResult);
 			break;
 		}
 
 		case XmlNodeType_CDATA:
 		{
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
-			ENGINE_ASSERT_HRESULT(getValueResult);
+			//const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			//ENGINE_ASSERT_HRESULT(getValueResult);
 			break;
 		}
 
 		case XmlNodeType_ProcessingInstruction:
 		{
-			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
-			ENGINE_ASSERT_HRESULT(getLocalNameResult);
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
-			ENGINE_ASSERT_HRESULT(getValueResult);
+			//const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
+			//ENGINE_ASSERT_HRESULT(getLocalNameResult);
+			//const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			//ENGINE_ASSERT_HRESULT(getValueResult);
 			break;
 		}
 
 		case XmlNodeType_Comment:
 		{
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
-			ENGINE_ASSERT_HRESULT(getValueResult);
+			//const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			//ENGINE_ASSERT_HRESULT(getValueResult);
 			break;
 		}
 
@@ -123,17 +149,23 @@ void Scene::ReadSceneFile()
 
 		case XmlNodeType_Whitespace:
 		{
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
-			ENGINE_ASSERT_HRESULT(getValueResult);
+			//const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			//ENGINE_ASSERT_HRESULT(getValueResult);
 			break;
 		}
 
 		case XmlNodeType_EndElement:
 		{
-			const HRESULT getPrefixResult = m_sceneReader.XMLReader->GetPrefix(&prefix, &prefixSize);
-			ENGINE_ASSERT_HRESULT(getPrefixResult);
-			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
-			ENGINE_ASSERT_HRESULT(getLocalNameResult);
+			Node& node = m_nodeStack.top();
+			ProcessNode(node);
+			m_nodeStack.pop();
+			ResetParseState();
+			//ResetComponentParseState();
+
+			//const HRESULT getPrefixResult = m_sceneReader.XMLReader->GetPrefix(&prefix, &prefixSize);
+			//ENGINE_ASSERT_HRESULT(getPrefixResult);
+			//const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
+			//ENGINE_ASSERT_HRESULT(getLocalNameResult);
 			break;
 		}
 
@@ -149,31 +181,238 @@ void Scene::ReadSceneFile()
 	}
 }
 
-void Scene::ReadAttributes()
+void Scene::ReadAttributes(Node& node)
 {
+	// Move the xml reader to the first attribute, and begins reading its values.
 	HRESULT moveToNextAttribute = m_sceneReader.XMLReader->MoveToFirstAttribute();
+	ENGINE_ASSERT_HRESULT(moveToNextAttribute);
+
+	// For the next valid attribute...
 	while (moveToNextAttribute == S_OK)
 	{
+		// If the node is not a document type definition node.
 		if (!m_sceneReader.XMLReader->IsDefault())
 		{
-			PCWSTR prefix = nullptr;
-			PCWSTR localName = nullptr;
-			PCWSTR value = nullptr;
+			// Initialize a default attribute values struct.
+			AttributeValues attributeValues = { };
 
-			UINT prefixSize = 0;
-			UINT localNameSize = 0;
-			UINT valueSize = 0;
-
-			const HRESULT getPrefixSize = m_sceneReader.XMLReader->GetPrefix(&prefix, &prefixSize);
+			// Get the attribute's prefix and prefix size.
+			const HRESULT getPrefixSize = m_sceneReader.XMLReader->GetPrefix(&attributeValues.prefix, &attributeValues.prefixSize);
 			ENGINE_ASSERT_HRESULT(getPrefixSize);
 
-			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&localName, &localNameSize);
+			// Get the attribute's local name and local name size.
+			const HRESULT getLocalNameResult = m_sceneReader.XMLReader->GetLocalName(&attributeValues.localName, &attributeValues.localNameSize);
 			ENGINE_ASSERT_HRESULT(getLocalNameResult);
 
-			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&value, &valueSize);
+			// Get the attribute's  value and value size.
+			const HRESULT getValueResult = m_sceneReader.XMLReader->GetValue(&attributeValues.value, &attributeValues.valueSize);
 			ENGINE_ASSERT_HRESULT(getValueResult);
+
+			// Add the attribute to the list of attributes for this element.
+			node.attributes.push_back(attributeValues);
 		}
 
+		// Move the reader to the next attribute.
 		moveToNextAttribute = m_sceneReader.XMLReader->MoveToNextAttribute();
+		ENGINE_ASSERT_HRESULT(moveToNextAttribute);
 	}
+}
+
+void Scene::SetParseState(const Node& node)
+{
+	// Hash function from element name.
+	std::hash<std::wstring> hasher;
+
+	// If a mapping exists between the element name and the parse state, update the parse state.
+	const auto constIterator = m_parseStateLookUpTable.find(hasher(node.elementValues.localName));
+	if (constIterator != m_parseStateLookUpTable.cend())
+	{
+		m_parseState = constIterator->second;
+	}
+}
+
+void Scene::ResetParseState()
+{
+	m_parseState = ParseState::NONE; // Put parse state in node instead. Its being reset on exit from node.
+}
+
+void Scene::ConstructParseStateLookUpTable()
+{
+	// Hash function for hashing element names as standard library wide strings.
+	std::hash<std::wstring> hasher;
+
+	// Build look up table to map element names to parse states.
+	m_parseStateLookUpTable[hasher(L"Mesh")] = ParseState::Mesh;
+	m_parseStateLookUpTable[hasher(L"Shader")] = ParseState::Shader;
+	m_parseStateLookUpTable[hasher(L"Texture")] = ParseState::Texture;
+	m_parseStateLookUpTable[hasher(L"System")] = ParseState::System;
+	m_parseStateLookUpTable[hasher(L"Entity")] = ParseState::Entity;
+	m_parseStateLookUpTable[hasher(L"TransformComponent")] = ParseState::TransformComponent;
+	m_parseStateLookUpTable[hasher(L"GraphicsMeshComponent")] = ParseState::GraphicsMeshComponent;
+	m_parseStateLookUpTable[hasher(L"PhysicsComponent")] = ParseState::PhysicsComponent;
+}
+
+void Scene::ProcessNode(Node& node)
+{
+	switch (m_parseState)
+	{
+	case Scene::ParseState::NONE:
+		break;
+	case Scene::ParseState::Mesh:
+		ProcessMeshNode(node);
+		break;
+	case Scene::ParseState::Shader:
+		ProcessShaderNode(node);
+		break;
+	case Scene::ParseState::Texture:
+		ProcessTextureNode(node);
+		break;
+	case Scene::ParseState::System:
+		ProcessSystemNode(node);
+		break;
+	case Scene::ParseState::Entity:
+		ProcessEntityNode();
+		break;
+	case ParseState::TransformComponent:
+		ProcessTransfromComponentNode(node);
+		break;
+	case ParseState::GraphicsMeshComponent:
+		ProcessGraphicsMeshComponentNode(node);
+		break;
+	case ParseState::PhysicsComponent:
+		ProcessPhysicsComponentNode(node);
+		break;
+	default:
+		break;
+	}
+}
+
+void Scene::ProcessMeshNode(const Node& node)
+{
+	// Retrieve the mesh manager to load the mesh.
+	MeshManager& meshManager = MeshManager::GetInstanceWrite();
+
+	// Retrieve the relevant mesh creation parameters from the xml element node.
+	const wchar_t* meshName = node.attributes[0].value;
+	const wchar_t* meshPath = node.textValues.value;
+	const bool meshOpenGLFlag = _wcsicmp(node.attributes[1].value, L"True") == 0;
+
+	// Attempt to create the mesh.
+	meshManager.CreateMeshData(meshName, meshPath, meshOpenGLFlag);
+}
+
+void Scene::ProcessShaderNode(const Node& node)
+{
+	// Retrieve the shader manager to load the shader.
+	ShaderManager& shaderManager = ShaderManager::GetInstanceWrite();
+
+	// Retrieve shader relevant loading parameters from the xml element node.
+	const wchar_t* shaderName = node.attributes[0].value;
+	const wchar_t* shaderPath = node.textValues.value;
+
+	// Attempt to load the shader.
+	shaderManager.CreateShaderData(shaderName, shaderPath, shaderPath);
+}
+
+void Scene::ProcessTextureNode(const Node& node)
+{
+	// Retrieve the texture manager to load the texture.
+	TextureManager& textureManager = TextureManager::GetInstanceWrite();
+
+	// Retrieve texture relevant loading parameters from the xml element node.
+	const wchar_t* textureName = node.attributes[0].value;
+	const wchar_t* texturePath = node.textValues.value;
+
+	// Attempt to create the texture.
+	textureManager.CreateTextureData(textureName, texturePath);
+}
+
+void Scene::ProcessSystemNode(const Node& node)
+{
+	// Retrieve the registry to create the requested systems.
+	Registry& registry = Registry::GetInstanceWrite();
+	
+	// Attempt to find and create the requested system.
+	if (_wcsicmp(node.textValues.value, L"GraphicsMeshRenderSystem") == 0)
+		registry.AddSystem<GraphicsMeshRenderSystem>();
+	else if (_wcsicmp(node.textValues.value, L"PhysicsSystem") == 0)
+		registry.AddSystem<PhysicsSystem>();
+}
+
+void Scene::ProcessEntityNode()
+{
+	// Retrieve the registry to create the requested entity.
+	Registry& registry = Registry::GetInstanceWrite();
+
+	// Create the entity.
+	m_lastProcessedEntity = registry.CreateEntity();
+}
+
+void Scene::ProcessTransfromComponentNode(const Node& node)
+{
+	TransformComponent transformComponent;	
+
+	// Retrieve the SIMD entity transform matrix.
+	XMMATRIX transform = XMLoadFloat4x4(&transformComponent.Transform);
+
+	// Retrieve the entity local space rotations.
+	const float xRotation = std::stof(node.attributes[3].value);
+	const float yRotation = std::stof(node.attributes[4].value);
+	const float zRotation = std::stof(node.attributes[5].value);
+
+	// Construct the entity local space rotation matrix.
+	const XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(
+		XMConvertToRadians(xRotation),
+		XMConvertToRadians(yRotation),
+		XMConvertToRadians(zRotation)
+	);
+
+	// Retrieve the entity world position.
+	const float xTranslation = std::stof(node.attributes[0].value);
+	const float yTranslation = std::stof(node.attributes[1].value);
+	const float zTranslation = std::stof(node.attributes[2].value);
+
+	// Construct the entity world translation matrix.
+	const XMMATRIX translationMatrix = XMMatrixTranslation(xTranslation, yTranslation, zTranslation);
+
+	// Apply the transformations to the entity transform.
+	transform *= rotationMatrix * translationMatrix;
+	XMStoreFloat4x4(&transformComponent.Transform, transform);
+
+	// Add the transform component to the entity.
+	Registry& registry = Registry::GetInstanceWrite();
+	registry.AddComponent<TransformComponent>(m_lastProcessedEntity, transformComponent);
+}
+
+void Scene::ProcessGraphicsMeshComponentNode(const Node& node)
+{
+	GraphicsMeshComponent graphicsMeshComponent;
+
+	// Fill the graphics mesh component data fields.
+	graphicsMeshComponent.MeshName = node.attributes[0].value;
+	graphicsMeshComponent.ShaderName = node.attributes[1].value;
+	graphicsMeshComponent.TextureName = node.attributes[2].value;
+
+	// Add the graphics mesh component to the entity.
+	Registry& registry = Registry::GetInstanceWrite();
+	registry.AddComponent<GraphicsMeshComponent>(m_lastProcessedEntity, graphicsMeshComponent);
+}
+
+void Scene::ProcessPhysicsComponentNode(const Node& node)
+{
+	PhysicsComponent physicsComponent;
+
+	// Set the physics component's linear velocity.
+	physicsComponent.LinearVelocity.x = std::stof(node.attributes[0].value);
+	physicsComponent.LinearVelocity.y = std::stof(node.attributes[1].value);
+	physicsComponent.LinearVelocity.z = std::stof(node.attributes[2].value);
+
+	// Set the physics component's angular velocity.
+	physicsComponent.AngularVelocity.x = std::stof(node.attributes[3].value);
+	physicsComponent.AngularVelocity.y = std::stof(node.attributes[4].value);
+	physicsComponent.AngularVelocity.z = std::stof(node.attributes[5].value);
+
+	// Add the graphics mesh component to the entity.
+	Registry& registry = Registry::GetInstanceWrite();
+	registry.AddComponent<PhysicsComponent>(m_lastProcessedEntity, physicsComponent);
 }

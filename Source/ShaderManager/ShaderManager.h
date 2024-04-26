@@ -7,14 +7,14 @@ class ShaderManager final
 	SINGLETON(ShaderManager);
 
 public:
-	const ShaderData& CreateShaderData(const wchar_t* name, const wchar_t* vertexShaderPath, const wchar_t* pixelShaderPath);
-	bool HaveShaderData(const wchar_t* name);
-	const ShaderData& GetShaderDataRead(const wchar_t* name) const;
-	void DeleteShaderData(const wchar_t* name);
+	const ShaderData& CreateShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath);
+	bool HaveShaderData(const std::wstring& name);
+	const ShaderData& GetShaderDataRead(const std::wstring& name) const;
+	void DeleteShaderData(const std::wstring& name);
 
 	void Clear() { m_shaderDataMap.clear(); }
 
 private:
-	std::unordered_map<const wchar_t*, ShaderData> m_shaderDataMap;
+	std::unordered_map<std::wstring, ShaderData> m_shaderDataMap;
 };
 

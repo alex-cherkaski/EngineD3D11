@@ -2,10 +2,10 @@
 #include "MeshManager.h"
 #include "Core/Core.h"
 
-const MeshData& MeshManager::CreateMeshData(const wchar_t* name, const wchar_t* path, bool isOpenGLMesh /*= false*/)
+const MeshData& MeshManager::CreateMeshData(const std::wstring& name, const std::wstring& path, bool isOpenGLMesh /*= false*/)
 {
 	// Ensure there are no previous entries for a mesh with the same name stored in the mesh data map.
-	ENGINE_ASSERT_W(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name);
+	ENGINE_ASSERT_W(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name.c_str());
 
 	// Load the mesh and get an instance of the mesh data struct from the map.
 	std::unique_ptr<Mesh> mesh = LoadMesh(path, isOpenGLMesh);
@@ -36,34 +36,34 @@ const MeshData& MeshManager::CreateMeshData(const wchar_t* name, const wchar_t* 
 	return meshData;
 }
 
-bool MeshManager::HaveMeshData(const wchar_t* name)
+bool MeshManager::HaveMeshData(const std::wstring& name)
 {
 	// Attempt to search for an entry with a matching name key.
 	return m_meshDataMap.find(name) != m_meshDataMap.cend();
 }
 
-const MeshData& MeshManager::GetMeshDataRead(const wchar_t* name) const
+const MeshData& MeshManager::GetMeshDataRead(const std::wstring& name) const
 {
 	// Attempt to search for an entry with a matching name key, and if found return it.
 	const auto constIterator = m_meshDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name);
+	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
 	return constIterator->second;
 }
 
-void MeshManager::DeleteMeshData(const wchar_t* name)
+void MeshManager::DeleteMeshData(const std::wstring& name)
 {
 	// Attempt to search for an entry with a matching name key, and if found erase it.
 	const auto constIterator = m_meshDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name);
+	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
 	m_meshDataMap.erase(constIterator);
 }
 
-std::unique_ptr<Mesh> MeshManager::LoadMesh(const wchar_t* path, bool isOpenGLMesh /*= false*/)
+std::unique_ptr<Mesh> MeshManager::LoadMesh(const std::wstring& path, bool isOpenGLMesh /*= false*/)
 {
 	// Attempt to load the mesh.
 	std::unique_ptr<Mesh> mesh(new Mesh());
-	mesh->Load(path, false);
-	ENGINE_ASSERT_W(!mesh->vertices.empty(), "Failed to load mesh from %s.", path);
+	mesh->Load(path.c_str(), false);
+	ENGINE_ASSERT_W(!mesh->vertices.empty(), "Failed to load mesh from %s.", path.c_str());
 
 	// Generate mesh normals if they are missing.
 	if (!mesh->hasNormals)
