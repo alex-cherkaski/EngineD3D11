@@ -10,7 +10,8 @@
 
 void SceneManager::Initialize()
 {
-	LoadScene(L"./Resources/Scenes/Viking_Room.xml");
+	//LoadScene(L"./Resources/Scenes/Viking_Room.xml");
+	LoadScene(L"./Resources/Scenes/Light_Test.xml");
 }
 
 void SceneManager::Update(float deltaTime)

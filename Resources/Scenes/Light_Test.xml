@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scene Name="Light_Test">
+	<Meshes>
+		<Mesh Name="Torus" IsOpenGLMesh="False">./Resources/Meshes/Monkey.obj</Mesh>
+	</Meshes>
+	<Shaders>
+		<Shader Name="Light_Shader">./Source/Shaders/LightShader.hlsl</Shader>
+	</Shaders>
+	<Systems>
+		<System>GraphicsMeshRenderSystem</System>
+		<System>PhysicsSystem</System>
+	</Systems>
+	<Entities>
+		<Entity Name="Torus"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="5.0f"
+				xRotation="0.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="1.0f"
+				yScale="1.0f"
+				zScale="1.0f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Torus"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+	</Entities>
+</Scene>

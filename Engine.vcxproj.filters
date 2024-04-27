@@ -172,6 +172,7 @@
     <FxCompile Include="Source\Shaders\MultiTexturingShader.hlsl" />
     <FxCompile Include="Source\Shaders\TextureLightingShader.hlsl" />
     <FxCompile Include="Source\Shaders\TextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\LightShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
@@ -187,5 +188,6 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="Resources\Scenes\Viking_Room.xml" />
+    <Xml Include="Resources\Scenes\Light_Test.xml" />
   </ItemGroup>
 </Project>
