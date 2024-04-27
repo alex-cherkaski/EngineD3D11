@@ -76,6 +76,16 @@ void Registry::Shutdown()
 		m_deletedEntities.pop();
 	}
 
+	// Clear the sets of pending entity, component, and tag addition requests.
+	m_addedEntities.clear();
+	m_addComponentRequests.clear();
+	m_addTagRequests.clear();
+
+	// Clear the set of pending entity, component, and tag removal requests.
+	m_removedEntities.clear();
+	m_removeComponentRequests.clear();
+	m_removeTagRequests.clear();
+
 	// Clear all component sets, entity component key sets, and systems.
 	m_componentSets.clear();
 	m_entityComponentKeys.clear();

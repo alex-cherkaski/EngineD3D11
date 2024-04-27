@@ -10,8 +10,8 @@
 
 void SceneManager::Initialize()
 {
-	//LoadScene(L"./Resources/Scenes/Light_Test.xml");
 	LoadScene(L"./Resources/Scenes/Texture_Test.xml");
+	LoadScene(L"./Resources/Scenes/Light_Test.xml");
 }
 
 void SceneManager::Update(float deltaTime)
