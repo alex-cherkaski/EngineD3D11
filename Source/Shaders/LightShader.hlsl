@@ -20,14 +20,15 @@ cbuffer cbChangesRarely : register(b2)
 struct VS_Input // The input to the vertex shader.
 {
     float3 position : POSITION; // The position or interpolated position of the vertex.
-    float3 normal : NORMAL0; // The normal or interpolated normal of the vertex.
+    float3 normal   : NORMAL0;  // The normal or interpolated normal of the vertex.
 };
 
 struct PS_Input // The input to the pixel shader.
 {
-    float4 position : SV_POSITION; // The position or interpolated position of the vertex.
-    float3 normal : NORMAL0; // The normal or interpolated normal of the vertex.
-    float3 lightVector : LIGHT_VECTOR; // The direction vector from the vertex position to the light source.
+    float4 position     : SV_POSITION;  // The position or interpolated position of the vertex.
+    float3 normal       : NORMAL0;      // The normal or interpolated normal of the vertex.
+    float3 lightVector  : LIGHT_VECTOR; // The direction vector from the vertex position to the light source.
+    float3 viewVector   : VIEW_VECTOR;  // The direction vector from the vertex to the camera position.
 };
 
 PS_Input VS_Main(VS_Input input)
@@ -47,6 +48,9 @@ PS_Input VS_Main(VS_Input input)
     const float3 lightPosition = float3(0.0f, 0.0f, 1.0f);
     output.lightVector = normalize(lightPosition - (float3)output.position);
     
+    // Calculate the view vector in world space.
+    output.viewVector = (float3)normalize(cameraPosition - output.position);
+    
     // Apply the view and projection matrices to the verte or interpolated vertex.
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
@@ -65,10 +69,24 @@ float4 PS_Main(PS_Input input) : SV_TARGET
     
     // Calculate the diffuse component.
     const float diffuse = clamp(dot(input.normal, input.lightVector), 0.0f, 1.0f);
-    const float3 diffuseLightColor = lightColor * diffuse;
+    const float3 diffuseLight = lightColor * diffuse;
+    
+    // Calculate the specular component.
+    float3 specularLight = float3(0.0f, 0.0f, 0.0f);
+    if (diffuse > 0.0f)
+    {
+        // Calculate the unit half vector vetween the light and view vectors.
+        const float3 halfVector = normalize(input.lightVector + input.viewVector);
+        
+        // Calculate the specular intensity.
+        const float specular = pow(saturate(dot(input.normal, halfVector)), 5);
+        
+        // Calculate the final specular light.
+        specularLight = lightColor * specular;
+    }
     
     // Compute the final color based on the ambient and diffuse colors.
-    const float3 finalColor = ambientColor + diffuseLightColor;
+    const float3 finalColor = ambientColor + diffuseLight + specularLight;
     
     // Forward the final pixle color to the rasterizer.
     return float4(finalColor, 1.0f);
