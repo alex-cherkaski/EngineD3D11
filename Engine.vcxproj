@@ -309,7 +309,7 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="Resources\Scenes\Light_Test.xml" />
-    <Xml Include="Resources\Scenes\Viking_Room.xml" />
+    <Xml Include="Resources\Scenes\Texture_Test.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
