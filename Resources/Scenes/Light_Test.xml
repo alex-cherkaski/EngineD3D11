@@ -2,6 +2,11 @@
 <Scene Name="Light_Test">
 	<Meshes>
 		<Mesh Name="Torus" IsOpenGLMesh="False">./Resources/Meshes/Torus.obj</Mesh>
+		<Mesh Name="Cone" IsOpenGLMesh="False">./Resources/Meshes/Cone.obj</Mesh>
+		<Mesh Name="Cylinder" IsOpenGLMesh="False">./Resources/Meshes/Cylinder.obj</Mesh>
+		<Mesh Name="IcoSphere" IsOpenGLMesh="False">./Resources/Meshes/IcoSphere.obj</Mesh>
+		<Mesh Name="Monkey" IsOpenGLMesh="False">./Resources/Meshes/Monkey.obj</Mesh>
+		<Mesh Name="Sphere" IsOpenGLMesh="False">./Resources/Meshes/Sphere.obj</Mesh>
 	</Meshes>
 	<Shaders>
 		<Shader Name="Light_Shader">./Source/Shaders/LightShader.hlsl</Shader>
@@ -36,6 +41,151 @@
 			</PhysicsComponent>
 			<GraphicsMeshComponent
 				MeshName="Torus"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+		<Entity Name="Cone"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="0.0f"
+				yTranslation="1.0f"
+				zTranslation="5.0f"
+				xRotation="90.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Cone"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+		<Entity Name="Cylinder"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="3.0f"
+				yTranslation="1.0f"
+				zTranslation="5.0f"
+				xRotation="90.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Cylinder"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+		<Entity Name="IcoSphere"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="-3.0f"
+				yTranslation="-1.0f"
+				zTranslation="5.0f"
+				xRotation="90.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="IcoSphere"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+		<Entity Name="Monkey"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="0.0f"
+				yTranslation="-1.0f"
+				zTranslation="5.0f"
+				xRotation="0.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Monkey"
+				ShaderName="Light_Shader"
+			>
+			</GraphicsMeshComponent>
+		</Components>
+		<Entity Name="Sphere"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="3.0f"
+				yTranslation="-1.0f"
+				zTranslation="5.0f"
+				xRotation="0.0f"
+				yRotation="180.0f"
+				zRotation="0.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
+			>
+			</TransformComponent>
+			<PhysicsComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="10.0f"
+				zRotation="0.0f"
+			>
+			</PhysicsComponent>
+			<GraphicsMeshComponent
+				MeshName="Sphere"
 				ShaderName="Light_Shader"
 			>
 			</GraphicsMeshComponent>
