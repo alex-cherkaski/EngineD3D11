@@ -20,7 +20,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="-3.0f"
-				yTranslation="1.0f"
+				yTranslation="-1.0f"
 				zTranslation="5.0f"
 				xRotation="90.0f"
 				yRotation="180.0f"
@@ -49,7 +49,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="0.0f"
-				yTranslation="1.0f"
+				yTranslation="-1.0f"
 				zTranslation="5.0f"
 				xRotation="90.0f"
 				yRotation="180.0f"
@@ -78,7 +78,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="3.0f"
-				yTranslation="1.0f"
+				yTranslation="-1.0f"
 				zTranslation="5.0f"
 				xRotation="90.0f"
 				yRotation="180.0f"
@@ -107,7 +107,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="-3.0f"
-				yTranslation="-1.0f"
+				yTranslation="1.0f"
 				zTranslation="5.0f"
 				xRotation="90.0f"
 				yRotation="180.0f"
@@ -136,7 +136,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="0.0f"
-				yTranslation="-1.0f"
+				yTranslation="1.0f"
 				zTranslation="5.0f"
 				xRotation="0.0f"
 				yRotation="180.0f"
@@ -165,7 +165,7 @@
 		<Components>
 			<TransformComponent
 				xTranslation="3.0f"
-				yTranslation="-1.0f"
+				yTranslation="1.0f"
 				zTranslation="5.0f"
 				xRotation="0.0f"
 				yRotation="180.0f"
