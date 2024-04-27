@@ -356,6 +356,14 @@ void Scene::ProcessTransfromComponentNode(const Node& node)
 	// Retrieve the SIMD entity transform matrix.
 	XMMATRIX transform = XMLoadFloat4x4(&transformComponent.Transform);
 
+	// Retrieve the local space scale factors.
+	const float xScale = std::stof(node.attributes[6].value);
+	const float yScale = std::stof(node.attributes[7].value);
+	const float zScale = std::stof(node.attributes[8].value);
+
+	// Construct the entity local space scale matrix.
+	const XMMATRIX scaleMatrix = XMMatrixScaling(xScale, yScale, zScale);
+
 	// Retrieve the entity local space rotations.
 	const float xRotation = std::stof(node.attributes[3].value);
 	const float yRotation = std::stof(node.attributes[4].value);
@@ -377,7 +385,7 @@ void Scene::ProcessTransfromComponentNode(const Node& node)
 	const XMMATRIX translationMatrix = XMMatrixTranslation(xTranslation, yTranslation, zTranslation);
 
 	// Apply the transformations to the entity transform.
-	transform *= rotationMatrix * translationMatrix;
+	transform *= scaleMatrix * rotationMatrix * translationMatrix;
 	XMStoreFloat4x4(&transformComponent.Transform, transform);
 
 	// Add the transform component to the entity.

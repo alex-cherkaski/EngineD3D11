@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Scene Name="Light_Test">
 	<Meshes>
-		<Mesh Name="Torus" IsOpenGLMesh="False">./Resources/Meshes/Monkey.obj</Mesh>
+		<Mesh Name="Torus" IsOpenGLMesh="False">./Resources/Meshes/Torus.obj</Mesh>
 	</Meshes>
 	<Shaders>
 		<Shader Name="Light_Shader">./Source/Shaders/LightShader.hlsl</Shader>
@@ -14,15 +14,15 @@
 		<Entity Name="Torus"></Entity>
 		<Components>
 			<TransformComponent
-				xTranslation="0.0f"
-				yTranslation="0.0f"
+				xTranslation="-3.0f"
+				yTranslation="1.0f"
 				zTranslation="5.0f"
-				xRotation="0.0f"
+				xRotation="90.0f"
 				yRotation="180.0f"
 				zRotation="0.0f"
-				xScale="1.0f"
-				yScale="1.0f"
-				zScale="1.0f"
+				xScale="0.5f"
+				yScale="0.5f"
+				zScale="0.5f"
 			>
 			</TransformComponent>
 			<PhysicsComponent
