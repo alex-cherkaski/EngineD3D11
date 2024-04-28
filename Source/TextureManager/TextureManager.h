@@ -13,7 +13,7 @@ public:
 	void DeleteTextureData(const std::wstring& name);
 
 	void Clear() { m_textureDataMap.clear(); }
-
+ 
 private:
 	std::unordered_map<std::wstring, TextureData> m_textureDataMap;
 };

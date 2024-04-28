@@ -7,7 +7,8 @@ class ShaderManager final
 	SINGLETON(ShaderManager);
 
 public:
-	const ShaderData& CreateShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath);
+	const ShaderData& CreateMeshShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath);
+	const ShaderData& CreateUIShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath);
 	bool HaveShaderData(const std::wstring& name);
 	const ShaderData& GetShaderDataRead(const std::wstring& name) const;
 	void DeleteShaderData(const std::wstring& name);

@@ -7,7 +7,9 @@
 #include "ShaderManager/ShaderManager.h"
 #include "Systems/PhysicsSystem.h"
 #include "Systems/GraphicsMeshRenderSystem.h"
+#include "Systems/UIRenderSystem.h"
 #include "TextureManager/TextureManager.h"
+#include "UIManager/UIManager.h"
 
 Scene::Scene(const wchar_t* filePath)
 {
@@ -246,11 +248,13 @@ void Scene::ConstructParseStateLookUpTable()
 	m_parseStateLookUpTable[hasher(L"Mesh")] = ParseState::Mesh;
 	m_parseStateLookUpTable[hasher(L"Shader")] = ParseState::Shader;
 	m_parseStateLookUpTable[hasher(L"Texture")] = ParseState::Texture;
+	m_parseStateLookUpTable[hasher(L"UI")] = ParseState::UI;
 	m_parseStateLookUpTable[hasher(L"System")] = ParseState::System;
 	m_parseStateLookUpTable[hasher(L"Entity")] = ParseState::Entity;
 	m_parseStateLookUpTable[hasher(L"TransformComponent")] = ParseState::TransformComponent;
 	m_parseStateLookUpTable[hasher(L"GraphicsMeshComponent")] = ParseState::GraphicsMeshComponent;
 	m_parseStateLookUpTable[hasher(L"PhysicsComponent")] = ParseState::PhysicsComponent;
+	m_parseStateLookUpTable[hasher(L"UIComponent")] = ParseState::UIComponent;
 }
 
 void Scene::ProcessNode(Node& node)
@@ -268,6 +272,9 @@ void Scene::ProcessNode(Node& node)
 	case Scene::ParseState::Texture:
 		ProcessTextureNode(node);
 		break;
+	case Scene::ParseState::UI:
+		ProcessUINode(node);
+		break;
 	case Scene::ParseState::System:
 		ProcessSystemNode(node);
 		break;
@@ -282,6 +289,9 @@ void Scene::ProcessNode(Node& node)
 		break;
 	case ParseState::PhysicsComponent:
 		ProcessPhysicsComponentNode(node);
+		break;
+	case ParseState::UIComponent:
+		ProcessUIComponentNode(node);
 		break;
 	default:
 		break;
@@ -311,8 +321,10 @@ void Scene::ProcessShaderNode(const Node& node)
 	const wchar_t* shaderName = node.attributes[0].value;
 	const wchar_t* shaderPath = node.textValues.value;
 
-	// Attempt to load the shader.
-	shaderManager.CreateShaderData(shaderName, shaderPath, shaderPath);
+	if (_wcsicmp(node.attributes[1].value, L"False") == 0)
+		shaderManager.CreateMeshShaderData(shaderName, shaderPath, shaderPath);
+	else
+		shaderManager.CreateUIShaderData(shaderName, shaderPath, shaderPath);
 }
 
 void Scene::ProcessTextureNode(const Node& node)
@@ -328,6 +340,16 @@ void Scene::ProcessTextureNode(const Node& node)
 	textureManager.CreateTextureData(textureName, texturePath);
 }
 
+void Scene::ProcessUINode(const Node& node)
+{
+	UIManager& uiManager = UIManager::GetInstanceWrite();
+
+	const wchar_t* uiName = node.attributes[0].value;
+	const wchar_t* uiText = node.textValues.value;
+
+	uiManager.CreateUIData(uiName, uiText);
+}
+
 void Scene::ProcessSystemNode(const Node& node)
 {
 	// Retrieve the registry to create the requested systems.
@@ -338,6 +360,8 @@ void Scene::ProcessSystemNode(const Node& node)
 		registry.AddSystem<GraphicsMeshRenderSystem>();
 	else if (_wcsicmp(node.textValues.value, L"PhysicsSystem") == 0)
 		registry.AddSystem<PhysicsSystem>();
+	else if (_wcsicmp(node.textValues.value, L"UIRenderSystem") == 0)
+		registry.AddSystem<UIRenderSystem>();
 }
 
 void Scene::ProcessEntityNode()
@@ -428,4 +452,18 @@ void Scene::ProcessPhysicsComponentNode(const Node& node)
 	// Add the graphics mesh component to the entity.
 	Registry& registry = Registry::GetInstanceWrite();
 	registry.AddComponent<PhysicsComponent>(m_lastProcessedEntity, physicsComponent);
+}
+
+void Scene::ProcessUIComponentNode(const Node& node)
+{
+	UIComponent uiComponent = { };
+
+	// 
+	uiComponent.ShaderName = node.attributes[0].value;
+	uiComponent.TextureName = node.attributes[1].value;
+	uiComponent.UIName = node.attributes[2].value;
+
+	// Add the UI component to the entity.
+	Registry& registry = Registry::GetInstanceWrite();
+	registry.AddComponent<UIComponent>(m_lastProcessedEntity, uiComponent);
 }

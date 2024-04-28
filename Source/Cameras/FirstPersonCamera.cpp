@@ -24,7 +24,7 @@ XMMATRIX FirstPersonCamera::GetViewMatrix() const
 	return XMMatrixLookAtLH(position, lookAtTarget, up);
 }
 
-XMMATRIX FirstPersonCamera::GetProjectionMatrix() const
+XMMATRIX FirstPersonCamera::GetPerspectiveMatrix() const
 {
 	// Retrieve and computer the necessary window parameters.
 	const Window& window = Window::GetInstanceRead();
@@ -35,6 +35,17 @@ XMMATRIX FirstPersonCamera::GetProjectionMatrix() const
 
 	// Construct the final projection matrix.
 	return XMMatrixPerspectiveFovLH(fovAngle, aspecRatio, zNear, zFar);
+}
+
+XMMATRIX FirstPersonCamera::GetOrthographicMatrix() const
+{
+	const Window& window = Window::GetInstanceRead();
+	const float viewWidth = (float)window.GetClientWidth();
+	const float viewHeight = (float)window.GetClientHeight();
+	const float nearPlane = 0.01f;
+	const float farPlane = 1.0f;
+
+	return XMMatrixOrthographicLH(viewWidth, viewHeight, nearPlane, farPlane);
 }
 
 void FirstPersonCamera::UpdateRotation(float deltaTime)

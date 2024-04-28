@@ -4,6 +4,8 @@
 struct MeshData;
 struct ShaderData;
 struct TextureData;
+struct UIData;
+struct UIMeshData;
 
 class Window final
 {
@@ -93,14 +95,17 @@ private:
 
 	void CreatePerMeshConstantBuffer();
 	void CreatePerFrameConstantBuffer();
-	void CreateProjectionConstantBuffer();
+	void CreatePerspectiveConstantBuffer();
+	void CreateOrthographicConstantBuffer();
 
 public:
 	void CreateDefaultVertexBuffer(MeshData& meshData);
 	//void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
+	void CreateDynamicVertexBuffer(UIData& uiData);
 	void CreateIndexBuffer(MeshData& meshData);
 
 	void CreateInputLayout(ShaderData& shaderData);
+	void CreateUIInputLayout(ShaderData& shaderData);
 	void CreateVertexShader(ShaderData& shaderData);
 	void CreatePixelShader(ShaderData& shaderData);
 
@@ -109,10 +114,17 @@ public:
 	void UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix);
 
 	void DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr);
+	void DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr);
+
+	void UpdateUITextVertexBuffer(const UIData& uiData);
+
+	void EnableBlending();
+	void DisableBlending();
 
 private:
 	void UpdatePerFrameConstantBuffer();
-	void UpdateProjectionConstantBuffer();
+	void UpdatePerspectiveConstantBuffer();
+	void UpdateOrthographicConstantBuffer();
 
 private:
 	//void WriteUITextData(const CoreObject& coreObject);
@@ -138,7 +150,8 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerMesh = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesPerFrame = nullptr;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesRarely = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesRarelyPerspective = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbChangesRarelyOrthographic = nullptr;
 
 	D3D_DRIVER_TYPE m_driverType = D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_1_0_CORE;

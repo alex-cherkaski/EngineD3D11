@@ -2,7 +2,7 @@
 #include "Core/Core.h"
 #include "ShaderManager.h"
 
-const ShaderData& ShaderManager::CreateShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath)
+const ShaderData& ShaderManager::CreateMeshShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath)
 {
 	// Ensure there are no previous entries for a shader with the same name stored in the shader data map.
 	ENGINE_ASSERT_W(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
@@ -19,6 +19,27 @@ const ShaderData& ShaderManager::CreateShaderData(const std::wstring& name, cons
 	renderer.CreateVertexShader(shaderData);
 	renderer.CreatePixelShader(shaderData);
 	renderer.CreateInputLayout(shaderData);
+
+	return shaderData;
+}
+
+const ShaderData& ShaderManager::CreateUIShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath)
+{
+	// Ensure there are no previous entries for a shader with the same name stored in the shader data map.
+	ENGINE_ASSERT_W(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
+
+	// Create a new instance of the shader data struct inside the shader data map.
+	ShaderData& shaderData = m_shaderDataMap[name];
+
+	// Fill the relevant shader data required to create the actual shader interfaces.
+	shaderData.VertexShaderPath = vertexShaderPath;
+	shaderData.PixelShaderPath = pixelShaderPath;
+
+	// Create the shader relevant vertex and pixel shader interfaces; as well as the input layout.
+	Renderer& renderer = Renderer::GetInstanceWrite();
+	renderer.CreateVertexShader(shaderData);
+	renderer.CreatePixelShader(shaderData);
+	renderer.CreateUIInputLayout(shaderData);
 
 	return shaderData;
 }

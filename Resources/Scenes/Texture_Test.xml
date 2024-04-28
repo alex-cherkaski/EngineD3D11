@@ -4,14 +4,20 @@
 		<Mesh Name="Viking_Room_Mesh" IsOpenGLMesh="True">./Resources/Meshes/viking_room.obj</Mesh>
 	</Meshes>
 	<Shaders>
-		<Shader Name="Texture_Shader">./Source/Shaders/TextureShader.hlsl</Shader>
+		<Shader Name="Texture_Shader" IsUI="False">./Source/Shaders/TextureShader.hlsl</Shader>
+		<Shader Name="UI_Shader" IsUI="True">./Source/Shaders/UIShader.hlsl</Shader>
 	</Shaders>
 	<Textures>
 		<Texture Name="Viking_Room_Texture">./Resources/Textures/viking_room.png</Texture>
+		<Texture Name="Font_Texture">./Resources/Images/Font.dds</Texture>
 	</Textures>
+	<UIs>
+		<UI Name="Average_FPS">A</UI>
+	</UIs>
 	<Systems>
-		<System>GraphicsMeshRenderSystem</System>
 		<System>PhysicsSystem</System>
+		<System>GraphicsMeshRenderSystem</System>
+		<System>UIRenderSystem</System>
 	</Systems>
 	<Entities>
 		<Entity Name="Viking_Room"></Entity>
@@ -43,6 +49,28 @@
 				TextureName="Viking_Room_Texture"
 			>
 			</GraphicsMeshComponent>
+		</Components>
+
+		<Entity Name="Viking_Room"></Entity>
+		<Components>
+			<TransformComponent
+				xTranslation="0.0f"
+				yTranslation="0.0f"
+				zTranslation="0.0f"
+				xRotation="0.0f"
+				yRotation="0.0f"
+				zRotation="0.0f"
+				xScale="1.0f"
+				yScale="1.0f"
+				zScale="1.0f"
+			>
+			</TransformComponent>
+			<UIComponent
+				ShaderName="UI_Shader"
+				TextureName="Font_Texture"
+				UIName="Average_FPS"
+			>
+			</UIComponent>
 		</Components>
 	</Entities>
 </Scene>

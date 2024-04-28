@@ -24,8 +24,10 @@ struct GraphicsMeshComponent
 	const wchar_t* TextureName = nullptr;
 };
 
-struct GraphicsTextComponent
+struct UIComponent
 {
-
+	const wchar_t* ShaderName = nullptr;
+	const wchar_t* TextureName = nullptr;
+	const wchar_t* UIName = nullptr;
 };
 

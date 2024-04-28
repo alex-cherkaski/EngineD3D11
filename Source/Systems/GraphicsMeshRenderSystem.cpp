@@ -20,7 +20,7 @@ void GraphicsMeshRenderSystem::Render()
 	// Retrieve the camera view and projection matrices required for rendering.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
 	const XMMATRIX viewMatrix = firstPersonCamera.GetViewMatrix();
-	const XMMATRIX projectionMatrix = firstPersonCamera.GetProjectionMatrix();
+	const XMMATRIX projectionMatrix = firstPersonCamera.GetPerspectiveMatrix();
 
 	// Retrieve the renderer to update and render; and relevent managers to query for relevant data.
 	Renderer& renderer = Renderer::GetInstanceWrite();
@@ -40,6 +40,8 @@ void GraphicsMeshRenderSystem::Render()
 
 		// Update the GPU constant buffer with the entity model/world matrix.
 		renderer.UpdatePerMeshConstantBuffer(transformComponent.Transform);
+
+		renderer.DisableBlending();
 
 		if (graphicsMeshComponent.TextureName)
 		{

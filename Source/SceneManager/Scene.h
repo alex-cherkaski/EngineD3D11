@@ -43,11 +43,13 @@ class Scene final
 		Mesh,
 		Shader,
 		Texture,
+		UI,
 		System,
 		Entity,
 		TransformComponent,
 		GraphicsMeshComponent,
-		PhysicsComponent
+		PhysicsComponent,
+		UIComponent
 	};
 
 public:
@@ -71,12 +73,14 @@ private:
 	void ProcessMeshNode(const Node& node);
 	void ProcessShaderNode(const Node& node);
 	void ProcessTextureNode(const Node& node);
+	void ProcessUINode(const Node& node);
 	void ProcessSystemNode(const Node& node);
 	void ProcessEntityNode();
 
 	void ProcessTransfromComponentNode(const Node& node);
 	void ProcessGraphicsMeshComponentNode(const Node& node);
 	void ProcessPhysicsComponentNode(const Node& node);
+	void ProcessUIComponentNode(const Node& node);
 
 private:
 	std::stack<Node> m_nodeStack;

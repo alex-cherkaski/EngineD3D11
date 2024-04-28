@@ -72,6 +72,12 @@
     <ClCompile Include="Source\SceneManager\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UIManager\UIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\UIRenderSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Core.h">
@@ -161,6 +167,15 @@
     <ClInclude Include="Source\SceneManager\SceneReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\UIManager\UIData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UIManager\UIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Systems\UIRenderSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Source\Shaders\SingleBlendTextureShader.hlsl" />
@@ -173,6 +188,7 @@
     <FxCompile Include="Source\Shaders\TextureLightingShader.hlsl" />
     <FxCompile Include="Source\Shaders\TextureShader.hlsl" />
     <FxCompile Include="Source\Shaders\LightShader.hlsl" />
+    <FxCompile Include="Source\Shaders\UIShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
@@ -187,7 +203,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="Resources\Scenes\Viking_Room.xml" />
     <Xml Include="Resources\Scenes\Light_Test.xml" />
+    <Xml Include="Resources\Scenes\Texture_Test.xml" />
   </ItemGroup>
 </Project>

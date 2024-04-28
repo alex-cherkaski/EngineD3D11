@@ -9,6 +9,7 @@
 #include "SceneManager/SceneManager.h"
 #include "ShaderManager/ShaderData.h"
 #include "TextureManager/TextureData.h"
+#include "UIManager/UIData.h"
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -257,7 +258,7 @@ void Engine::Run()
 }
 
 void Engine::Shutdown()
-{	
+{
 	Window::GetInstanceWrite().Shutdown();
 	Logger::GetInstanceWrite().Shutdown();
 	CoUninitialize(); // Shutdown COM.
@@ -373,7 +374,8 @@ void Renderer::Initialize()
 	CreateViewPort();
 	CreateRasterizerState();
 
-	UpdateProjectionConstantBuffer();
+	UpdatePerspectiveConstantBuffer();
+	UpdateOrthographicConstantBuffer();
 
 	Logger::GetInstanceWrite().Log(Logger::Message, "Successfully initialized renderer.");
 }
@@ -393,7 +395,7 @@ void Renderer::PreRender()
 	float currentFOVAngle = firstPersonCamera.GetFOVAngle();
 	if (currentFOVAngle != lastFOVAngle)
 	{
-		UpdateProjectionConstantBuffer();
+		UpdatePerspectiveConstantBuffer();
 		lastFOVAngle = currentFOVAngle;
 	}
 }
@@ -741,6 +743,83 @@ void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, 
 	);
 }
 
+void Renderer::DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, const TextureData* textureData /*= nullptr*/)
+{
+	// Calculate each vertex element stride and position.
+	const UINT stride = sizeof(UIVertexAttributes);
+	const UINT offset = 0;
+
+	// Set the input layout for the current model
+	m_id3d11DeviceContext->IASetInputLayout(shaderData->InputLayout.Get());
+
+	// Set the vertex buffer for the current model.
+	m_id3d11DeviceContext->IASetVertexBuffers(
+		0,										// The slot to be used for this set of vertex buffer.
+		1,										// The number of vertex buffers in the vertex buffer array.
+		meshData->VertexBuffer.GetAddressOf(),	// The array of vertex buffers to set.
+		&stride,								// The stride from one vertex element to the next.
+		&offset									// The offset until the first vertex element in the buffer.
+	);
+
+	// Set the index buffer for the current model.
+	//m_id3d11DeviceContext->IASetIndexBuffer(
+	//	meshData->IndexBuffer.Get(),				// Pointer to the index buffer interface to set.
+	//	DXGI_FORMAT::DXGI_FORMAT_R32_UINT,		// The format of the index buffer to set.
+	//	0										// Offset from the start of the index buffer to the first index to use.
+	//);
+
+	// Set the primitive topology setting to draw the vertices with.
+	m_id3d11DeviceContext->IASetPrimitiveTopology(meshData->PrimitiveTopology);
+
+	// Set the vertex shader to draw with.
+	m_id3d11DeviceContext->VSSetShader(
+		shaderData->VertexShader.Get(),		// Pointer to the vertex shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader to draw with.
+	m_id3d11DeviceContext->PSSetShader(
+		shaderData->PixelShader.Get(),		// Pointer to the pixel shader interface to set.
+		nullptr,							// Optional array of ID3D11ClassInstance.
+		0									// Number of entries in the optional array of ID3D11ClassInstance.
+	);
+
+	// Set the pixel shader resource view to use to set the shader texture.
+	m_id3d11DeviceContext->PSSetShaderResources(
+		0,												// The index of the shader resource we want to set.
+		1,												// The number of shader resources in the share resource array.
+		textureData->ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+	);
+
+	// Set the pixel shader sampler state to sample the texture.
+	m_id3d11DeviceContext->PSSetSamplers(
+		0,										// The index of the shader sampler to set.
+		1,										// The number of sampler states in the sampler state array.
+		m_id3d11SamplerState.GetAddressOf()		// Pointer to the array of sampler states.
+	);
+
+	// Set the render target view that will be used to access and write to the back buffer.
+	m_id3d11DeviceContext->OMSetRenderTargets(
+		1,											// The number of render target views to set.
+		m_id3d11RenderTargetView.GetAddressOf(),	// The array of pointers to the render target views to set.
+		m_id3d11DepthStencilView.Get()				// Optional pointer to depth stencil view interface.
+	);
+
+	// Draw UI.
+	m_id3d11DeviceContext->Draw(
+		meshData->Vertices.size(),		// The number of vertices to draw.
+		0								// The index of the first vertex to draw.
+	);
+
+	// Draw the model.
+	//m_id3d11DeviceContext->DrawIndexed(
+	//	(UINT)meshData->Indices.size(),		// The number of indices to draw.
+	//	0,									// The index of the first index value.
+	//	0									// Value added to each index before reading from the vertex buffer.
+	//);
+}
+
 void Renderer::Present()
 {
 	// Present the contents of the back buffer to the screen.
@@ -785,7 +864,7 @@ void Renderer::CreatePerFrameConstantBuffer()
 	ENGINE_ASSERT_HRESULT(createBufferResult);
 }
 
-void Renderer::CreateProjectionConstantBuffer()
+void Renderer::CreatePerspectiveConstantBuffer()
 {
 	// Initialize constant buffer descriptor struct.
 	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
@@ -797,7 +876,26 @@ void Renderer::CreateProjectionConstantBuffer()
 	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
 		&constantBufferDescriptor,				// Pointer to the buffer descriptor struct.
 		nullptr,								// Pointer to optional initial data struct.
-		m_cbChangesRarely.GetAddressOf()		// Pointer to resulting interface.
+		m_cbChangesRarelyPerspective.GetAddressOf()		// Pointer to resulting interface.
+	);
+
+	// Error check constant buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateOrthographicConstantBuffer()
+{
+	// Initialize constant buffer descriptor struct.
+	D3D11_BUFFER_DESC constantBufferDescriptor = { 0 };
+	constantBufferDescriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;	// How the buffer should be bound to the pipeline.
+	constantBufferDescriptor.ByteWidth = sizeof(XMMATRIX);								// The size of the constant buffer.
+	constantBufferDescriptor.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;					// How the buffer will be read from and written to. This one will require read and write access by the GPU.
+
+	// Attempt to create the camera position constant buffer.
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&constantBufferDescriptor,						// Pointer to the buffer descriptor struct.
+		nullptr,										// Pointer to optional initial data struct.
+		m_cbChangesRarelyOrthographic.GetAddressOf()	// Pointer to resulting interface.
 	);
 
 	// Error check constant buffer creation.
@@ -822,6 +920,27 @@ void Renderer::CreateDefaultVertexBuffer(MeshData& meshData)
 		&vertexBufferDecription,				// The buffer description struct.
 		&initialBufferData,						// The initial buffer data.
 		meshData.VertexBuffer.GetAddressOf()	// Pointer to the resulting buffer interface.
+	);
+
+	// Error check vertex buffer creation.
+	ENGINE_ASSERT_HRESULT(createBufferResult);
+}
+
+void Renderer::CreateDynamicVertexBuffer(UIData& uiData)
+{
+	// Initialize the vertex buffer descriptor struct.
+	D3D11_BUFFER_DESC vertexBufferDecriptor = { 0 };
+	vertexBufferDecriptor.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;									// How the buffer will be accessed.
+	vertexBufferDecriptor.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;			// What sort of access the CPU needs to the vertex buffer on the GPU.
+	vertexBufferDecriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
+	vertexBufferDecriptor.ByteWidth = (UINT)(6 * 32 * sizeof(UIVertexAttributes));					// The size of the buffer.
+
+	// Attempt to create the vertex buffer.
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
+	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
+		&vertexBufferDecriptor,						// The buffer description struct.
+		nullptr,									// The initial buffer data. We will update the buffer contents dynamically at runtime.
+		uiData.Mesh.VertexBuffer.GetAddressOf()		// Pointer to the resulting buffer interface.
 	);
 
 	// Error check vertex buffer creation.
@@ -900,6 +1019,43 @@ void Renderer::CreateInputLayout(ShaderData& shaderData)
 			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,						// The format of the semantic element.
 			0,															// The index of the vertex buffer for this element.
 			(UINT)sizeof(VertexAttributes::Position) + (UINT)sizeof(VertexAttributes::Normal) ,					// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		}
+	};
+
+	// Attempt to create the input layout.
+	const HRESULT createInputLayoutResult = m_id3d11Device->CreateInputLayout(
+		inputElements,									// Array of vertex shader input elements.
+		ARRAYSIZE(inputElements),						// Number of elements in the input element array.
+		shaderData.VertexBlob->GetBufferPointer(),		// Pointer to the compiled shader byte code.
+		shaderData.VertexBlob->GetBufferSize(),			// The size of the compiled shader byte code.
+		shaderData.InputLayout.GetAddressOf()			// Pointer to the resulting input layout interface.
+	);
+
+	// Error check input layout creation.
+	ENGINE_ASSERT_HRESULT(createInputLayoutResult);
+}
+
+void Renderer::CreateUIInputLayout(ShaderData& shaderData)
+{
+	// Array of vertex element descriptors.
+	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
+		{
+			"POSITION",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,					// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			0,															// The offset of this element in the vertex buffer.
+			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
+			0															// Instance data step rate. 0 for vertex data.
+		},
+		{
+			"TEXCOORD",													// The semantic name of the vertex element.
+			0,															// The semantic index of the vertex element.
+			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,						// The format of the semantic element.
+			0,															// The index of the vertex buffer for this element.
+			(UINT)sizeof(UIVertexAttributes::Position),					// The offset of this element in the vertex buffer.
 			D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA,	// The element is a per vertex element.
 			0															// Instance data step rate. 0 for vertex data.
 		}
@@ -1057,7 +1213,8 @@ void Renderer::CreateConstantBuffers()
 {
 	CreatePerMeshConstantBuffer();
 	CreatePerFrameConstantBuffer();
-	CreateProjectionConstantBuffer();
+	CreatePerspectiveConstantBuffer();
+	CreateOrthographicConstantBuffer();
 }
 
 void Renderer::UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix)
@@ -1129,30 +1286,161 @@ void Renderer::UpdatePerFrameConstantBuffer()
 	);
 }
 
-void Renderer::UpdateProjectionConstantBuffer()
+void Renderer::UpdatePerspectiveConstantBuffer()
 {
 	// Retrieve the projection matrix from the current camera.
 	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
-	const XMMATRIX projectionMatrix = XMMatrixTranspose(firstPersonCamera.GetProjectionMatrix());
+	const XMMATRIX perspectiveMatrix = XMMatrixTranspose(firstPersonCamera.GetPerspectiveMatrix());
 
 	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
 	//const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
 
 	// Update the projection matrix constant buffer.
 	m_id3d11DeviceContext->UpdateSubresource(
-		m_cbChangesRarely.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
+		m_cbChangesRarelyPerspective.Get(),		// Pointer to interface of the GPU buffer we want to copy to.
 		0,								// Index of the subresource we want to update.
 		nullptr,						// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
-		&projectionMatrix,				// Pointer to the buffer of data we wish to copy to the subresource.
+		&perspectiveMatrix,				// Pointer to the buffer of data we wish to copy to the subresource.
 		sizeof(XMMATRIX::r),			// The size of one row of the source data.
 		0								// The size of the depth slice of the source data.
 	);
 
 	// Set the projection matrix constant buffer.
 	m_id3d11DeviceContext->VSSetConstantBuffers(
-		2,										// The slot index that we are setting.
-		1,										// The number of buffers that we are setting.
-		m_cbChangesRarely.GetAddressOf()		// Pointer to the array of constant buffers to set.
+		2,												// The slot index that we are setting.
+		1,												// The number of buffers that we are setting.
+		m_cbChangesRarelyPerspective.GetAddressOf()		// Pointer to the array of constant buffers to set.
+	);
+}
+
+void Renderer::UpdateOrthographicConstantBuffer()
+{
+	// Retrieve the projection matrix from the current camera.
+	const FirstPersonCamera& firstPersonCamera = FirstPersonCamera::GetInstanceRead();
+	const XMMATRIX orthographicMatrix = XMMatrixTranspose(firstPersonCamera.GetOrthographicMatrix());
+
+	//const ArcBallCamera& arcBallCamera = ArcBallCamera::GetInstanceRead();
+	//const XMMATRIX projectionMatrix = XMMatrixTranspose(arcBallCamera.GetProjectionMatrix());
+
+	// Update the projection matrix constant buffer.
+	m_id3d11DeviceContext->UpdateSubresource(
+		m_cbChangesRarelyOrthographic.Get(),	// Pointer to interface of the GPU buffer we want to copy to.
+		0,										// Index of the subresource we want to update.
+		nullptr,								// Optional pointer to the destination resource box that defines what portion of the subresource should be updated.
+		&orthographicMatrix,					// Pointer to the buffer of data we wish to copy to the subresource.
+		sizeof(XMMATRIX::r),					// The size of one row of the source data.
+		0										// The size of the depth slice of the source data.
+	);
+
+	// Set the projection matrix constant buffer.
+	m_id3d11DeviceContext->VSSetConstantBuffers(
+		3,												// The slot index that we are setting.
+		1,												// The number of buffers that we are setting.
+		m_cbChangesRarelyOrthographic.GetAddressOf()	// Pointer to the array of constant buffers to set.
+	);
+}
+
+void Renderer::UpdateUITextVertexBuffer(const UIData& uiData)
+{
+	// Attempt to lock the vertex buffer and retrieve its data pointer.
+	D3D11_MAPPED_SUBRESOURCE vertexBufferData = { nullptr };
+	const HRESULT mapResult = m_id3d11DeviceContext->Map(
+		(ID3D11Resource*)uiData.Mesh.VertexBuffer.Get(),	// Pointer to the device interface to lock and retrieve data of.
+		0,													// The index slot of the resource we wish to map.
+		D3D11_MAP::D3D11_MAP_WRITE_DISCARD,					// Discard the last entry of the resource and use what is written.
+		0,													// Additional mapping create flags.
+		&vertexBufferData									// Buffer containing a pointer to the data the can be edited.
+	);
+
+	// Error check vertex buffer data retrieval and locking.
+	ENGINE_ASSERT_HRESULT(mapResult);
+
+	// Get the vertex buffer data pointer.
+	UIVertexAttributes* vertexData = (UIVertexAttributes*)vertexBufferData.pData;
+
+	// Copy the contents of the vertex data into the vertex buffer pointer.
+	for (UINT i = 0; i < uiData.Mesh.Vertices.size(); ++i)
+	{
+		vertexData[i].Position = uiData.Mesh.Vertices[i].Position;
+		vertexData[i].Texture = uiData.Mesh.Vertices[i].Texture;
+	}
+
+	// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.
+	m_id3d11DeviceContext->Unmap(
+		(ID3D11Resource*)uiData.Mesh.VertexBuffer.Get(),	// Pointer to resource to unlock and invalidate mapped subresource pointer of.
+		0													// The slot of the GPU resource that is being unlocked.
+	);
+}
+
+void Renderer::EnableBlending()
+{
+	// Release the previous blend state.
+	m_id3d11BlendState->Release();
+
+	// Initialize blend state descriptor struct.
+	D3D11_BLEND_DESC blendDescriptor = { 0 };
+	blendDescriptor.RenderTarget[0].BlendEnable = TRUE;										// Is blending enabled.
+	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
+	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
+	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
+	blendDescriptor.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;		// How to combine the source and destination alpha values.
+	blendDescriptor.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the pixel shader alpha value.
+	blendDescriptor.RenderTarget[0].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the current render target alpha value.
+	blendDescriptor.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;	// Which of RGBA to write the blend to. 
+
+	// Attempt to create blend state.
+	const HRESULT createBlendStateResult = m_id3d11Device->CreateBlendState(
+		&blendDescriptor,						// Pointer to the blend state descriptor struct.
+		m_id3d11BlendState.GetAddressOf()		// Pointer to the resulting blend state interface.
+	);
+
+	// Error check blend state creation.
+	ENGINE_ASSERT_HRESULT(createBlendStateResult);
+
+	// Blend factor to modulate the values of pixel shader, render target, or both.
+	constexpr float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// Set the blend state of the output merger stage.
+	m_id3d11DeviceContext->OMSetBlendState(
+		m_id3d11BlendState.Get(),		// Pointer to the blend state interface to set.
+		blendFactor,					// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
+		0xffffffff						// Which samples get updated in the currently active render target.
+	);
+}
+
+void Renderer::DisableBlending()
+{
+	// Release the previous blend state.
+	m_id3d11BlendState->Release();
+
+	// Initialize blend state descriptor struct.
+	D3D11_BLEND_DESC blendDescriptor = { 0 };
+	blendDescriptor.RenderTarget[0].BlendEnable = FALSE;									// Is blending enabled.
+	blendDescriptor.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;			// How to combined the source and destination images.
+	blendDescriptor.RenderTarget[0].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;			// The operation to perform on the pixel shader RGB output.
+	blendDescriptor.RenderTarget[0].DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;				// The operation to perform on the RGB of the current render target.
+	blendDescriptor.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;		// How to combine the source and destination alpha values.
+	blendDescriptor.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the pixel shader alpha value.
+	blendDescriptor.RenderTarget[0].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;			// The operation to perform on the current render target alpha value.
+	blendDescriptor.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;	// Which of RGBA to write the blend to. 
+
+	// Attempt to create blend state.
+	const HRESULT createBlendStateResult = m_id3d11Device->CreateBlendState(
+		&blendDescriptor,						// Pointer to the blend state descriptor struct.
+		m_id3d11BlendState.GetAddressOf()		// Pointer to the resulting blend state interface.
+	);
+
+	// Error check blend state creation.
+	ENGINE_ASSERT_HRESULT(createBlendStateResult);
+
+	// Blend factor to modulate the values of pixel shader, render target, or both.
+	constexpr float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// Set the blend state of the output merger stage.
+	m_id3d11DeviceContext->OMSetBlendState(
+		m_id3d11BlendState.Get(),		// Pointer to the blend state interface to set.
+		blendFactor,					// The blend factor for D3D11_BLEND_BLEND_FACTOR or D3D11_BLEND_INV_BLEND_FACTOR.
+		0xffffffff						// Which samples get updated in the currently active render target.
 	);
 }
 
