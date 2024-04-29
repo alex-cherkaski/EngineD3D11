@@ -39,12 +39,14 @@ XMMATRIX FirstPersonCamera::GetPerspectiveMatrix() const
 
 XMMATRIX FirstPersonCamera::GetOrthographicMatrix() const
 {
+	// Retrieve the window frame buffer dimensions to create the orthographic matrix.
 	const Window& window = Window::GetInstanceRead();
 	const float viewWidth = (float)window.GetClientWidth();
 	const float viewHeight = (float)window.GetClientHeight();
 	const float nearPlane = 0.01f;
 	const float farPlane = 1.0f;
 
+	// Create the orthographic matrix.
 	return XMMatrixOrthographicLH(viewWidth, viewHeight, nearPlane, farPlane);
 }
 
