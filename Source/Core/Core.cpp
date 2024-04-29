@@ -762,13 +762,6 @@ void Renderer::DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, 
 		&offset									// The offset until the first vertex element in the buffer.
 	);
 
-	// Set the index buffer for the current model.
-	//m_id3d11DeviceContext->IASetIndexBuffer(
-	//	meshData->IndexBuffer.Get(),				// Pointer to the index buffer interface to set.
-	//	DXGI_FORMAT::DXGI_FORMAT_R32_UINT,		// The format of the index buffer to set.
-	//	0										// Offset from the start of the index buffer to the first index to use.
-	//);
-
 	// Set the primitive topology setting to draw the vertices with.
 	m_id3d11DeviceContext->IASetPrimitiveTopology(meshData->PrimitiveTopology);
 
@@ -812,13 +805,6 @@ void Renderer::DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, 
 		meshData->Vertices.size(),		// The number of vertices to draw.
 		0								// The index of the first vertex to draw.
 	);
-
-	// Draw the model.
-	//m_id3d11DeviceContext->DrawIndexed(
-	//	(UINT)meshData->Indices.size(),		// The number of indices to draw.
-	//	0,									// The index of the first index value.
-	//	0									// Value added to each index before reading from the vertex buffer.
-	//);
 }
 
 void Renderer::Present()
@@ -947,27 +933,6 @@ void Renderer::CreateDynamicVertexBuffer(UIData& uiData)
 	// Error check vertex buffer creation.
 	ENGINE_ASSERT_HRESULT(createBufferResult);
 }
-
-//void Renderer::CreateDynamicVertexBuffer(GPUModelData& gpuModelData)
-//{
-//	// Initialize the vertex buffer descriptor struct.
-//	D3D11_BUFFER_DESC vertexBufferDecriptor = { 0 };
-//	vertexBufferDecriptor.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;									// How the buffer will be accessed.
-//	vertexBufferDecriptor.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;			// What sort of access the CPU needs to the vertex buffer on the GPU.
-//	vertexBufferDecriptor.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;					// How the buffer should be set by the driver.
-//	vertexBufferDecriptor.ByteWidth = (UINT)(6 * 24 * sizeof(VertexAttributes));								// The size of the buffer.
-//
-//	// Attempt to create the vertex buffer.
-//	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = nullptr;
-//	const HRESULT createBufferResult = m_id3d11Device->CreateBuffer(
-//		&vertexBufferDecriptor,						// The buffer description struct.
-//		nullptr,									// The initial buffer data. We will update the buffer contents dynamically at runtime.
-//		gpuModelData.VertexBuffer.GetAddressOf()	// Pointer to the resulting buffer interface.
-//	);
-//
-//	// Error check vertex buffer creation.
-//	ENGINE_ASSERT_HRESULT(createBufferResult);
-//}
 
 void Renderer::CreateIndexBuffer(MeshData& meshData)
 {
@@ -1444,3 +1409,4 @@ void Renderer::DisableBlending()
 		0xffffffff						// Which samples get updated in the currently active render target.
 	);
 }
+
