@@ -1,6 +1,6 @@
 #pragma once
-#include "SceneReader.h"
 #include "ECS/Types.h"
+#include "SceneReader.h"
 
 class Scene final
 {

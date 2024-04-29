@@ -264,6 +264,14 @@ void Engine::Shutdown()
 	CoUninitialize(); // Shutdown COM.
 }
 
+void Engine::ResetFPSCounter()
+{
+	// Reset FPS tracking variables.
+	m_frameCounter = 0;
+	m_elapsedTime = 0.0f;
+	m_averageFPS = 0.0f;
+}
+
 void Engine::Setup()
 {
 	SceneManager::GetInstanceWrite().Initialize();

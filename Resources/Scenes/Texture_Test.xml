@@ -50,8 +50,7 @@
 			>
 			</GraphicsMeshComponent>
 		</Components>
-
-		<Entity Name="Viking_Room"></Entity>
+		<Entity Name="Average_FPS"></Entity>
 		<Components>
 			<TransformComponent
 				xTranslation="0.0f"

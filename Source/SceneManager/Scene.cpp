@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "Components/Components.h"
+#include "Core/Core.h"
 #include "ECS/Registry.h"
 #include "Macros.h"
 #include "MeshManager/MeshManager.h"
@@ -13,8 +14,13 @@
 
 Scene::Scene(const wchar_t* filePath)
 {
+	// Create the lookup table that maps node string names to scene parse states.
 	ConstructParseStateLookUpTable();
+
+	// Create the actual file stream and xml scene reader.
 	CreateSceneReader(filePath);
+
+	// Parse the xml tree and reconstruct the scene.
 	ReadSceneFile();
 }
 
@@ -38,6 +44,9 @@ void Scene::Shutdown()
 	MeshManager::GetInstanceWrite().Clear();
 	ShaderManager::GetInstanceWrite().Clear();
 	TextureManager::GetInstanceWrite().Clear();
+	UIManager::GetInstanceWrite().Clear();
+
+	Engine::GetInstanceWrite().ResetFPSCounter();
 }
 
 void Scene::CreateSceneReader(const wchar_t* filePath)
@@ -80,8 +89,10 @@ void Scene::CreateSceneReader(const wchar_t* filePath)
 
 void Scene::ReadSceneFile()
 {
+	// While we are not done parsing the xml file...
 	while (!m_sceneReader.XMLReader->IsEOF())
 	{
+		// Attempt to read the next xml node - not entire element - but node.
 		XmlNodeType nodeType;
 		const HRESULT readResult = m_sceneReader.XMLReader->Read(&nodeType);
 		ENGINE_ASSERT_HRESULT(readResult);
@@ -107,7 +118,6 @@ void Scene::ReadSceneFile()
 			// Process all attribute for this opening element.
 			ReadAttributes(node);
 			SetParseState(node);
-			//SetComponentParseState(node);
 			break;
 		}
 
@@ -163,7 +173,6 @@ void Scene::ReadSceneFile()
 			ProcessNode(node);
 			m_nodeStack.pop();
 			ResetParseState();
-			//ResetComponentParseState();
 
 			//const HRESULT getPrefixResult = m_sceneReader.XMLReader->GetPrefix(&prefix, &prefixSize);
 			//ENGINE_ASSERT_HRESULT(getPrefixResult);
@@ -321,6 +330,7 @@ void Scene::ProcessShaderNode(const Node& node)
 	const wchar_t* shaderName = node.attributes[0].value;
 	const wchar_t* shaderPath = node.textValues.value;
 
+	// Attempt to create either a mesh shader, or a ui shader depending on the second xml element attribute.
 	if (_wcsicmp(node.attributes[1].value, L"False") == 0)
 		shaderManager.CreateMeshShaderData(shaderName, shaderPath, shaderPath);
 	else
@@ -342,11 +352,14 @@ void Scene::ProcessTextureNode(const Node& node)
 
 void Scene::ProcessUINode(const Node& node)
 {
+	// Retrieve the ui manager to create a new ui element mesh.
 	UIManager& uiManager = UIManager::GetInstanceWrite();
 
+	// Retrieve the ui element identifying name and initial text.
 	const wchar_t* uiName = node.attributes[0].value;
 	const wchar_t* uiText = node.textValues.value;
 
+	// Attempt to contruct the ui element mesh and texture.
 	uiManager.CreateUIData(uiName, uiText);
 }
 
@@ -375,7 +388,8 @@ void Scene::ProcessEntityNode()
 
 void Scene::ProcessTransfromComponentNode(const Node& node)
 {
-	TransformComponent transformComponent;	
+	// Initialize the new transform component.
+	TransformComponent transformComponent = { };
 
 	// Retrieve the SIMD entity transform matrix.
 	XMMATRIX transform = XMLoadFloat4x4(&transformComponent.Transform);
@@ -419,12 +433,14 @@ void Scene::ProcessTransfromComponentNode(const Node& node)
 
 void Scene::ProcessGraphicsMeshComponentNode(const Node& node)
 {
-	GraphicsMeshComponent graphicsMeshComponent;
+	// Initialize the new graphics mesh component.
+	GraphicsMeshComponent graphicsMeshComponent = { };
 
 	// Fill the graphics mesh component data fields.
 	graphicsMeshComponent.MeshName = node.attributes[0].value;
 	graphicsMeshComponent.ShaderName = node.attributes[1].value;
 
+	// The second attribute contains the texture name, but is optional for 3D meshes.
 	if (node.attributes.size() > 2)
 	{
 		graphicsMeshComponent.TextureName = node.attributes[2].value;
@@ -437,7 +453,8 @@ void Scene::ProcessGraphicsMeshComponentNode(const Node& node)
 
 void Scene::ProcessPhysicsComponentNode(const Node& node)
 {
-	PhysicsComponent physicsComponent;
+	// Initialize the new physics component.
+	PhysicsComponent physicsComponent = { };
 
 	// Set the physics component's linear velocity.
 	physicsComponent.LinearVelocity.x = std::stof(node.attributes[0].value);
@@ -456,9 +473,10 @@ void Scene::ProcessPhysicsComponentNode(const Node& node)
 
 void Scene::ProcessUIComponentNode(const Node& node)
 {
+	// Initialize the new ui component.
 	UIComponent uiComponent = { };
 
-	// 
+	// Initialize the ui data relevant parameters.
 	uiComponent.ShaderName = node.attributes[0].value;
 	uiComponent.TextureName = node.attributes[1].value;
 	uiComponent.UIName = node.attributes[2].value;

@@ -51,6 +51,7 @@ public:
 	void IsRunning(bool isRunning) { m_isRunning = isRunning; }
 
 	float GetAverageFPS() const { return m_averageFPS; }
+	void ResetFPSCounter();
 
 private:
 	void Setup();
