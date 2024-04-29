@@ -51,7 +51,7 @@ public:
 	void IsRunning(bool isRunning) { m_isRunning = isRunning; }
 
 	float GetAverageFPS() const { return m_averageFPS; }
-	void ResetFPSCounter();
+	void ResetAverageFPSTracker();
 
 private:
 	void Setup();
@@ -108,7 +108,6 @@ private:
 
 public:
 	void CreateDefaultVertexBuffer(MeshData& meshData);
-	//void CreateDynamicVertexBuffer(GPUModelData& gpuModelData);
 	void CreateDynamicVertexBuffer(UIData& uiData);
 	void CreateIndexBuffer(MeshData& meshData);
 
@@ -133,9 +132,6 @@ private:
 	void UpdatePerFrameConstantBuffer();
 	void UpdatePerspectiveConstantBuffer();
 	void UpdateOrthographicConstantBuffer();
-
-private:
-	//void WriteUITextData(const CoreObject& coreObject);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_id3d11Device = nullptr;

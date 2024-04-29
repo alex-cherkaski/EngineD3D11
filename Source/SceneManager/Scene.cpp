@@ -46,7 +46,7 @@ void Scene::Shutdown()
 	TextureManager::GetInstanceWrite().Clear();
 	UIManager::GetInstanceWrite().Clear();
 
-	Engine::GetInstanceWrite().ResetFPSCounter();
+	Engine::GetInstanceWrite().ResetAverageFPSTracker();
 }
 
 void Scene::CreateSceneReader(const wchar_t* filePath)

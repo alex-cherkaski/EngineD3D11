@@ -264,7 +264,7 @@ void Engine::Shutdown()
 	CoUninitialize(); // Shutdown COM.
 }
 
-void Engine::ResetFPSCounter()
+void Engine::ResetAverageFPSTracker()
 {
 	// Reset FPS tracking variables.
 	m_frameCounter = 0;
@@ -375,8 +375,13 @@ float Engine::ComputeDeltaTime()
 
 void Engine::UpdateAverageFPS(float delatTime)
 {
+	// Increment the frame counter.
 	m_frameCounter += 1;
+
+	// Update the tracked elapsed time.
 	m_elapsedTime += delatTime;
+
+	// Compute the new average FPS value.
 	m_averageFPS = m_frameCounter / m_elapsedTime;
 }
 
@@ -419,29 +424,14 @@ void Renderer::PreRender()
 
 void Renderer::Render()
 {
+	// Clear the color, depth, and stencil buffers.
 	Clear();
 
-	//static CoreObjectManager& coreObjectManager = CoreObjectManager::GetInstanceWrite();
-	//for (const CoreObject& coreObject : coreObjectManager.GetCoreSpritesRead())
-	//{
-	//	DrawSprites(coreObject);
-	//}
-	//for (const CoreObject& coreObject : coreObjectManager.GetCoreUITextsRead())
-	//{
-	//	DrawUITexts(coreObject);
-	//}
-	//for (const CoreObject& coreObject : coreObjectManager.GetCore3DModelsRead())
-	//{
-	//	UpdatePerMeshConstantBuffer(coreObject);
-	//	Draw3DModels(coreObject);
-	//}
-
-	//static Registry& registry = Registry::GetInstanceWrite();
-	//registry.RunSystemsRender();
-
+	// Run the render routine of all active systems in the current scene.
 	static SceneManager& sceneManager = SceneManager::GetInstanceWrite();
 	sceneManager.Render();
 
+	// Swap the front and back buffers.
 	Present();
 }
 
@@ -679,12 +669,6 @@ void Renderer::Clear()
 		0									// Value to clear the stencil part of the texture with.
 	);
 }
-
-//void Renderer::DrawUITexts(const CoreObject& coreObject)
-//{
-//	WriteUITextData(coreObject);
-//	DrawSprites(coreObject);
-//}
 
 void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData/* = nullptr */)
 {
@@ -1460,39 +1444,3 @@ void Renderer::DisableBlending()
 		0xffffffff						// Which samples get updated in the currently active render target.
 	);
 }
-
-//void Renderer::WriteUITextData(const CoreObject& coreObject)
-//{
-	//static CoreGPUDataManager& coreGPUDataManager = CoreGPUDataManager::GetInstanceWrite();
-	//GPUModelData& gpuModelData = coreGPUDataManager.GetGPUModelDataWrite(coreObject.GetGPUDataGUID());
-
-	//// Attempt to lock the vertex buffer and retrieve its data pointer.
-	//D3D11_MAPPED_SUBRESOURCE vertexBufferData = { nullptr };
-	//const HRESULT mapResult = m_id3d11DeviceContext->Map(
-	//	(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to the device interface to lock and retrieve data of.
-	//	0,													// The index slot of the resource we wish to map.
-	//	D3D11_MAP::D3D11_MAP_WRITE_DISCARD,					// Discard the last entry of the resource and use what is written.
-	//	0,													// Additional mapping create flags.
-	//	&vertexBufferData
-	//);
-
-	//// Error check vertex buffer data retrieval and locking.
-	//ENGINE_ASSERT_HRESULT(mapResult);
-
-	//// Get the vertex buffer data pointer.
-	//VertexAttributes* vertexData = (VertexAttributes*)vertexBufferData.pData;
-
-	//// Copy the contents of the vertex data into the vertex buffer pointer.
-	//for (UINT i = 0; i < gpuModelData.Vertices.size(); ++i)
-	//{
-	//	vertexData[i].Position = gpuModelData.Vertices[i].Position;
-	//	vertexData[i].Texture = gpuModelData.Vertices[i].Texture;
-	//}
-
-	//// Unlock the vertex buffer and invalidate the mapped subresource pointer previously used.
-	//m_id3d11DeviceContext->Unmap(
-	//	(ID3D11Resource*)gpuModelData.VertexBuffer.Get(),	// Pointer to resource to unlock and invalidate mapped subresource pointer of.
-	//	0													// The slot of the GPU resource that is being unlocked.
-	//);
-//}
-
