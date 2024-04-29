@@ -10,7 +10,8 @@ public:
 	void Update(float deltaTime);
 
 	XMMATRIX GetViewMatrix() const;
-	XMMATRIX GetProjectionMatrix() const;
+	XMMATRIX GetPerspectiveMatrix() const;
+	XMMATRIX GetOrthographicMatrix() const;
 
 	const XMFLOAT4 GetCameraPosition() const { return { m_transform._41, m_transform._42, m_transform._43, m_transform._44 }; }
 	void SetCameraPosition(const XMFLOAT3& cameraPosition) { m_transform._41 = cameraPosition.x; m_transform._42 = cameraPosition.y; m_transform._43 = cameraPosition.z; }

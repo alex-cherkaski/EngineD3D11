@@ -23,7 +23,7 @@ XMMATRIX ArcBallCamera::GetViewMatrix() const
 	return XMMatrixLookAtLH(position, lookAtTarget, up);
 }
 
-XMMATRIX ArcBallCamera::GetProjectionMatrix() const
+XMMATRIX ArcBallCamera::GetPerspectiveMatrix() const
 {
 	// Retrieve and computer the necessary window parameters.
 	const Window& window = Window::GetInstanceRead();
@@ -34,6 +34,19 @@ XMMATRIX ArcBallCamera::GetProjectionMatrix() const
 
 	// Construct the final projection matrix.
 	return XMMatrixPerspectiveFovLH(fovAngle, aspecRatio, zNear, zFar);
+}
+
+XMMATRIX ArcBallCamera::GetOrthographicMatrix() const
+{
+	// Retrieve the window frame buffer dimensions to create the orthographic matrix.
+	const Window& window = Window::GetInstanceRead();
+	const float viewWidth = (float)window.GetClientWidth();
+	const float viewHeight = (float)window.GetClientHeight();
+	const float nearPlane = 0.01f;
+	const float farPlane = 1.0f;
+
+	// Create the orthographic matrix.
+	return XMMatrixOrthographicLH(viewWidth, viewHeight, nearPlane, farPlane);
 }
 
 void ArcBallCamera::UpdatePosition(float deltaTime)
