@@ -12,7 +12,7 @@
 		<Texture Name="Font_Texture">./Resources/Images/Font.dds</Texture>
 	</Textures>
 	<UIs>
-		<UI Name="Average_FPS">A</UI>
+		<UI Name="Average_FPS">TEST!</UI>
 	</UIs>
 	<Systems>
 		<System>PhysicsSystem</System>
@@ -61,7 +61,7 @@
 				yRotation="0.0f"
 				zRotation="0.0f"
 				xScale="1.0f"
-				yScale="1.0f"
+				yScale="-1.0f"
 				zScale="1.0f"
 			>
 			</TransformComponent>

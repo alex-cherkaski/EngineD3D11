@@ -50,6 +50,8 @@ public:
 	bool IsRunning() const { return m_isRunning; }
 	void IsRunning(bool isRunning) { m_isRunning = isRunning; }
 
+	float GetAverageFPS() const { return m_averageFPS; }
+
 private:
 	void Setup();
 	void ProcessInput();
@@ -62,10 +64,15 @@ private:
 	void InitializeThreadAffinity();
 
 	float ComputeDeltaTime();
+	void UpdateAverageFPS(float delatTime);
 
 private:
 	LARGE_INTEGER m_performanceCounterFrequency = { };	// The constant number of ticks every second.
 	LARGE_INTEGER m_lastFramePerformanceCount = { };
+
+	UINT m_frameCounter = 0;
+	float m_elapsedTime = 0.0f; // In second.
+	float m_averageFPS = 0.0f;
 
 	bool m_isRunning = false;
 };

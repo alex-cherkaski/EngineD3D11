@@ -289,6 +289,8 @@ void Engine::Update()
 
 	static SceneManager& sceneManager = SceneManager::GetInstanceWrite();
 	sceneManager.Update(deltaTime);
+
+	UpdateAverageFPS(deltaTime);
 }
 
 void Engine::Render()
@@ -361,6 +363,13 @@ float Engine::ComputeDeltaTime()
 #else
 	return deltaTime;
 #endif // _DEBUG
+}
+
+void Engine::UpdateAverageFPS(float delatTime)
+{
+	m_frameCounter += 1;
+	m_elapsedTime += delatTime;
+	m_averageFPS = m_frameCounter / m_elapsedTime;
 }
 
 void Renderer::Initialize()

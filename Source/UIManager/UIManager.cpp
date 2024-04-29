@@ -55,13 +55,16 @@ void UIManager::ConstructUIMesh(UIData& uiData, const std::wstring& text)
 {
 	ENGINE_ASSERT_W(text.size() <= 32, "Text character count too large."); // Arbitrary choice for testing.
 
+	// Construct a plane out of six vertices for each character we wish to render.
 	for (byte i = 0; i < text.size(); ++i)
 	{
 		ConstructCharacterPlane(uiData, text[i], i);
 	}
 
+	// Set the primitive topology state of the UI mesh.
 	uiData.Mesh.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
+	// Create the dynamic vertex buffer that will be updated every frame with new text.
 	Renderer& renderer = Renderer::GetInstanceWrite();
 	renderer.CreateDynamicVertexBuffer(uiData);
 }
@@ -71,8 +74,10 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	constexpr float CHAR_TEXTURE_WIDTH = 10;
 	constexpr float CHAR_TEXTURE_HEIGHT = 20;
 
+	// Calculate the rectangular box that is used to read off the character atlas texture.
 	const CharacterTextureBox box = ConstructCharacterBox(character);
 	
+	// Triangle 1 starts here.
 	UIVertexAttributes vertexAttribute1;
 	vertexAttribute1.Position.x = index * CHAR_TEXTURE_WIDTH;
 	vertexAttribute1.Position.y = 0.0f;
@@ -81,11 +86,11 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	vertexAttribute1.Texture.y = box.y;
 	
 	UIVertexAttributes vertexAttribute2;
-	vertexAttribute2.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
-	vertexAttribute2.Position.y = 0.0f;
+	vertexAttribute2.Position.x = index * CHAR_TEXTURE_WIDTH;
+	vertexAttribute2.Position.y = CHAR_TEXTURE_HEIGHT;
 	vertexAttribute2.Position.z = 0.0f;
-	vertexAttribute2.Texture.x = box.x + box.w;
-	vertexAttribute2.Texture.y = box.y;
+	vertexAttribute2.Texture.x = box.x;
+	vertexAttribute2.Texture.y = box.y + box.h;
 
 	UIVertexAttributes vertexAttribute3;
 	vertexAttribute3.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
@@ -93,7 +98,9 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	vertexAttribute3.Position.z = 0.0f;
 	vertexAttribute3.Texture.x = box.x + box.w;
 	vertexAttribute3.Texture.y = box.y + box.h;
+	// Triangle 1 ends here.
 
+	// Triangle 2 starts here.
 	UIVertexAttributes vertexAttribute4;
 	vertexAttribute4.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
 	vertexAttribute4.Position.y = CHAR_TEXTURE_HEIGHT;
@@ -102,11 +109,11 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	vertexAttribute4.Texture.y = box.y + box.h;
 
 	UIVertexAttributes vertexAttribute5;
-	vertexAttribute5.Position.x = index * CHAR_TEXTURE_WIDTH;
-	vertexAttribute5.Position.y = CHAR_TEXTURE_HEIGHT;
+	vertexAttribute5.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
+	vertexAttribute5.Position.y = 0.0f;
 	vertexAttribute5.Position.z = 0.0f;
-	vertexAttribute5.Texture.x = box.x;
-	vertexAttribute5.Texture.y = box.y + box.h;
+	vertexAttribute5.Texture.x = box.x + box.w;
+	vertexAttribute5.Texture.y = box.y;
 
 	UIVertexAttributes vertexAttribute6;
 	vertexAttribute6.Position.x = index * CHAR_TEXTURE_WIDTH;
@@ -114,15 +121,15 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	vertexAttribute6.Position.z = 0.0f;
 	vertexAttribute6.Texture.x = box.x;
 	vertexAttribute6.Texture.y = box.y;
+	// Triangle 2 ends here.
 
+	// Add the vertices to the mesh composing the UI element.
 	uiData.Mesh.Vertices.push_back(vertexAttribute1);
 	uiData.Mesh.Vertices.push_back(vertexAttribute2);
 	uiData.Mesh.Vertices.push_back(vertexAttribute3);
 	uiData.Mesh.Vertices.push_back(vertexAttribute4);
 	uiData.Mesh.Vertices.push_back(vertexAttribute5);
 	uiData.Mesh.Vertices.push_back(vertexAttribute6);
-
-	int breakpoint = 0;
 }
 
 UIManager::CharacterTextureBox UIManager::ConstructCharacterBox(wchar_t character)
