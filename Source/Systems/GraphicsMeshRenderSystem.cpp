@@ -41,16 +41,20 @@ void GraphicsMeshRenderSystem::Render()
 		// Update the GPU constant buffer with the entity model/world matrix.
 		renderer.UpdatePerMeshConstantBuffer(transformComponent.Transform);
 
+		// Disable any color blending when drawing a regular 3D mesh.
 		renderer.DisableBlending();
 
+		// If the mesh has a texture, draw it with the specified texture.
 		if (graphicsMeshComponent.TextureName)
 		{
+			// Retrieve the texture data referencing the texture the mesh should be drawn with.
 			const TextureData& textureData = textureManager.GetTextureDataRead(graphicsMeshComponent.TextureName);
 
 			// Draw the mesh using the relevant mesh data.
 			renderer.DrawMesh(&meshData, &shaderData, &textureData);
 		}
 
+		// Otherwise draw the mesh without a texture.
 		else
 		{
 			renderer.DrawMesh(&meshData, &shaderData);
