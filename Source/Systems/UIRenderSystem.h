@@ -5,7 +5,7 @@ class UIRenderSystem final : public ISystem
 {
 public:
 	UIRenderSystem(Registry& registry);
-	~UIRenderSystem();
+	~UIRenderSystem() = default;
 
 	// Inherited via ISystem.
 	void Initialize() override {}
