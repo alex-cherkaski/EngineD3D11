@@ -61,7 +61,7 @@
 				yRotation="0.0f"
 				zRotation="0.0f"
 				xScale="1.0f"
-				yScale="-1.0f"
+				yScale="1.0f"
 				zScale="1.0f"
 			>
 			</TransformComponent>

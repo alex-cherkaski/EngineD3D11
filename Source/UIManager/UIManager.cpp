@@ -1,6 +1,6 @@
 #include "PCH.h"
-#include "UIManager.h"
 #include "Core/Core.h"
+#include "UIManager.h"
 
 const UIData& UIManager::CreateUIData(const std::wstring& name, const std::wstring& text)
 {
@@ -80,21 +80,21 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	// Triangle 1 starts here.
 	UIVertexAttributes vertexAttribute1;
 	vertexAttribute1.Position.x = index * CHAR_TEXTURE_WIDTH;
-	vertexAttribute1.Position.y = 0.0f;
+	vertexAttribute1.Position.y = CHAR_TEXTURE_HEIGHT;
 	vertexAttribute1.Position.z = 0.0f;
 	vertexAttribute1.Texture.x = box.x;
 	vertexAttribute1.Texture.y = box.y;
 	
 	UIVertexAttributes vertexAttribute2;
 	vertexAttribute2.Position.x = index * CHAR_TEXTURE_WIDTH;
-	vertexAttribute2.Position.y = CHAR_TEXTURE_HEIGHT;
+	vertexAttribute2.Position.y = 0.0f;
 	vertexAttribute2.Position.z = 0.0f;
 	vertexAttribute2.Texture.x = box.x;
 	vertexAttribute2.Texture.y = box.y + box.h;
 
 	UIVertexAttributes vertexAttribute3;
 	vertexAttribute3.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
-	vertexAttribute3.Position.y = CHAR_TEXTURE_HEIGHT;
+	vertexAttribute3.Position.y = 0.0f;
 	vertexAttribute3.Position.z = 0.0f;
 	vertexAttribute3.Texture.x = box.x + box.w;
 	vertexAttribute3.Texture.y = box.y + box.h;
@@ -103,21 +103,21 @@ void UIManager::ConstructCharacterPlane(UIData& uiData, wchar_t character, byte 
 	// Triangle 2 starts here.
 	UIVertexAttributes vertexAttribute4;
 	vertexAttribute4.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
-	vertexAttribute4.Position.y = CHAR_TEXTURE_HEIGHT;
+	vertexAttribute4.Position.y = 0.0f;
 	vertexAttribute4.Position.z = 0.0f;
 	vertexAttribute4.Texture.x = box.x + box.w;
 	vertexAttribute4.Texture.y = box.y + box.h;
 
 	UIVertexAttributes vertexAttribute5;
 	vertexAttribute5.Position.x = index * CHAR_TEXTURE_WIDTH + CHAR_TEXTURE_WIDTH;
-	vertexAttribute5.Position.y = 0.0f;
+	vertexAttribute5.Position.y = CHAR_TEXTURE_HEIGHT;
 	vertexAttribute5.Position.z = 0.0f;
 	vertexAttribute5.Texture.x = box.x + box.w;
 	vertexAttribute5.Texture.y = box.y;
-
+	
 	UIVertexAttributes vertexAttribute6;
 	vertexAttribute6.Position.x = index * CHAR_TEXTURE_WIDTH;
-	vertexAttribute6.Position.y = 0.0f;
+	vertexAttribute6.Position.y = CHAR_TEXTURE_HEIGHT;
 	vertexAttribute6.Position.z = 0.0f;
 	vertexAttribute6.Texture.x = box.x;
 	vertexAttribute6.Texture.y = box.y;

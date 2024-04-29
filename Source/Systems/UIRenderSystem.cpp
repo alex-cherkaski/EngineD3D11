@@ -9,13 +9,10 @@
 
 static bool MoveToBottomLeft(Entity avgFPSEntity)
 {
-	// The height of a single character on the current texture atlas.
-	constexpr byte CHARACTER_HEIGHT = 20;
-
 	// Retrieve the window dimensions to translate the ui entity.
 	const Window& window = Window::GetInstanceRead();
 	const float xTranslation = window.GetClientWidth() / 2.0f;
-	const float yTranslation = window.GetClientHeight() / 2.0f - CHARACTER_HEIGHT;
+	const float yTranslation = window.GetClientHeight() / 2.0f;
 
 	// Retrieve the ui entity transform for updating.
 	Registry& registry = Registry::GetInstanceWrite();
