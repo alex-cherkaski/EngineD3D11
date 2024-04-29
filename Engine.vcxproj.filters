@@ -178,14 +178,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\Shaders\SingleBlendTextureShader.hlsl" />
-    <FxCompile Include="Source\Shaders\FillColorShader.hlsl" />
-    <FxCompile Include="Source\Shaders\SingleTextureShader.hlsl" />
-    <FxCompile Include="Source\Shaders\CubeSingleTextureShader.hlsl" />
-    <FxCompile Include="Source\Shaders\ColorInversionShader.hlsl" />
-    <FxCompile Include="Source\Shaders\ColorShiftingShader.hlsl" />
-    <FxCompile Include="Source\Shaders\MultiTexturingShader.hlsl" />
-    <FxCompile Include="Source\Shaders\TextureLightingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_SingleBlendTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_FillColorShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_SingleTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_CubeSingleTextureShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_ColorInversionShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_ColorShiftingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_MultiTexturingShader.hlsl" />
+    <FxCompile Include="Source\Shaders\DEPRECATED_TextureLightingShader.hlsl" />
     <FxCompile Include="Source\Shaders\TextureShader.hlsl" />
     <FxCompile Include="Source\Shaders\LightShader.hlsl" />
     <FxCompile Include="Source\Shaders\UIShader.hlsl" />
