@@ -189,6 +189,7 @@
     <FxCompile Include="Source\Shaders\TextureShader.hlsl" />
     <FxCompile Include="Source\Shaders\LightShader.hlsl" />
     <FxCompile Include="Source\Shaders\UIShader.hlsl" />
+    <FxCompile Include="Source\Shaders\TextureMixerShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Font.dds" />
@@ -205,5 +206,6 @@
   <ItemGroup>
     <Xml Include="Resources\Scenes\Light_Test.xml" />
     <Xml Include="Resources\Scenes\Texture_Test.xml" />
+    <Xml Include="Resources\Scenes\Texture_Mix_Test.xml" />
   </ItemGroup>
 </Project>

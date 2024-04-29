@@ -670,7 +670,7 @@ void Renderer::Clear()
 	);
 }
 
-void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData/* = nullptr */)
+void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData/* = nullptr */, const TextureData* blendTextureData/* = nullptr */)
 {
 	// Calculate each vertex element stride and position.
 	const UINT stride = sizeof(VertexAttributes);
@@ -719,6 +719,16 @@ void Renderer::DrawMesh(const MeshData* meshData, const ShaderData* shaderData, 
 			0,												// The index of the shader resource we want to set.
 			1,												// The number of shader resources in the share resource array.
 			textureData->ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
+		);
+	}
+
+	if (blendTextureData)
+	{
+		// Set the pixel shader resource view to use to set the shader texture.
+		m_id3d11DeviceContext->PSSetShaderResources(
+			1,													// The index of the shader resource we want to set.
+			1,													// The number of shader resources in the share resource array.
+			blendTextureData->ShaderResourceView.GetAddressOf()	// Pointer to the array of shader resources.
 		);
 	}
 

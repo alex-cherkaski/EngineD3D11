@@ -22,6 +22,7 @@ struct GraphicsMeshComponent
 	const wchar_t* MeshName = nullptr;
 	const wchar_t* ShaderName = nullptr;
 	const wchar_t* TextureName = nullptr;
+	const wchar_t* BlendTextureName = nullptr;
 };
 
 struct UIComponent

@@ -446,6 +446,12 @@ void Scene::ProcessGraphicsMeshComponentNode(const Node& node)
 		graphicsMeshComponent.TextureName = node.attributes[2].value;
 	}
 
+	// The third attribute is an auxiliary texture for blending, but is also optional.
+	if (node.attributes.size() > 3)
+	{
+		graphicsMeshComponent.BlendTextureName = node.attributes[3].value;
+	}
+
 	// Add the graphics mesh component to the entity.
 	Registry& registry = Registry::GetInstanceWrite();
 	registry.AddComponent<GraphicsMeshComponent>(m_lastProcessedEntity, graphicsMeshComponent);

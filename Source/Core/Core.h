@@ -120,7 +120,7 @@ public:
 
 	void UpdatePerMeshConstantBuffer(const XMFLOAT4X4& worldMatrix);
 
-	void DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr);
+	void DrawMesh(const MeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr, const TextureData* blendTextureData = nullptr);
 	void DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, const TextureData* textureData = nullptr);
 
 	void UpdateUITextVertexBuffer(const UIData& uiData);

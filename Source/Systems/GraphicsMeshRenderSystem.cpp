@@ -44,8 +44,18 @@ void GraphicsMeshRenderSystem::Render()
 		// Disable any color blending when drawing a regular 3D mesh.
 		renderer.DisableBlending();
 
+		// 
+		if (graphicsMeshComponent.TextureName && graphicsMeshComponent.BlendTextureName)
+		{
+			const TextureData& textureData = textureManager.GetTextureDataRead(graphicsMeshComponent.TextureName);
+			const TextureData& blendTextureData = textureManager.GetTextureDataRead(graphicsMeshComponent.BlendTextureName);
+
+			// Draw the mesh using the relevant mesh data.
+			renderer.DrawMesh(&meshData, &shaderData, &textureData, &blendTextureData);
+		}
+
 		// If the mesh has a texture, draw it with the specified texture.
-		if (graphicsMeshComponent.TextureName)
+		else if (graphicsMeshComponent.TextureName)
 		{
 			// Retrieve the texture data referencing the texture the mesh should be drawn with.
 			const TextureData& textureData = textureManager.GetTextureDataRead(graphicsMeshComponent.TextureName);
