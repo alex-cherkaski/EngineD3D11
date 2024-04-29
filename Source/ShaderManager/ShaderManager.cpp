@@ -5,7 +5,7 @@
 const ShaderData& ShaderManager::CreateMeshShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath)
 {
 	// Ensure there are no previous entries for a shader with the same name stored in the shader data map.
-	ENGINE_ASSERT_W(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
+	ENGINE_ASSERT(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
 
 	// Create a new instance of the shader data struct inside the shader data map.
 	ShaderData& shaderData = m_shaderDataMap[name];
@@ -26,7 +26,7 @@ const ShaderData& ShaderManager::CreateMeshShaderData(const std::wstring& name, 
 const ShaderData& ShaderManager::CreateUIShaderData(const std::wstring& name, const std::wstring& vertexShaderPath, const std::wstring& pixelShaderPath)
 {
 	// Ensure there are no previous entries for a shader with the same name stored in the shader data map.
-	ENGINE_ASSERT_W(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
+	ENGINE_ASSERT(!HaveShaderData(name), "Already have an entry for shader %s.", name.c_str());
 
 	// Create a new instance of the shader data struct inside the shader data map.
 	ShaderData& shaderData = m_shaderDataMap[name];
@@ -54,7 +54,7 @@ const ShaderData& ShaderManager::GetShaderDataRead(const std::wstring& name) con
 {
 	// Attempt to search for an entry with a matching name key, and if found return it.
 	const auto constIterator = m_shaderDataMap.find(name.c_str());
-	ENGINE_ASSERT_W(constIterator != m_shaderDataMap.cend(), "Do not have an entry for shader %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_shaderDataMap.cend(), "Do not have an entry for shader %s.", name.c_str());
 	return constIterator->second;
 }
 
@@ -62,6 +62,6 @@ void ShaderManager::DeleteShaderData(const std::wstring& name)
 {
 	// Attempt to search for an entry with a matching name key, and if found erase it.
 	const auto constIterator = m_shaderDataMap.find(name.c_str());
-	ENGINE_ASSERT_W(constIterator != m_shaderDataMap.cend(), "Do not have an entry for shader %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_shaderDataMap.cend(), "Do not have an entry for shader %s.", name.c_str());
 	m_shaderDataMap.erase(constIterator);
 }

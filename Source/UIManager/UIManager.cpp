@@ -6,7 +6,7 @@ const UIData& UIManager::CreateUIData(const std::wstring& name, const std::wstri
 {
 	// Ensure that an entry with the same name does not already exit.
 	const auto constIterator = m_uiDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator == m_uiDataMap.cend(), "Entry for text %s already exists.", name.c_str());
+	ENGINE_ASSERT(constIterator == m_uiDataMap.cend(), "Entry for text %s already exists.", name.c_str());
 
 	// Create a text data entry and construct its corresponding mesh.
 	UIData& uiData = m_uiDataMap[name];
@@ -39,7 +39,7 @@ const UIData& UIManager::GetUIDataRead(const std::wstring& name) const
 {
 	// Attempt to find a text data entry with the corresponding name.
 	const auto constIterator = m_uiDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_uiDataMap.cend(), "Entry for text %s not found.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_uiDataMap.cend(), "Entry for text %s not found.", name.c_str());
 	return constIterator->second;
 }
 
@@ -47,13 +47,13 @@ void UIManager::DeleteUIData(const std::wstring& name)
 {
 	// Attempt to find and erase a text data entry with the corresponding name.
 	const auto constIterator = m_uiDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_uiDataMap.cend(), "Entry for text %s not found.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_uiDataMap.cend(), "Entry for text %s not found.", name.c_str());
 	m_uiDataMap.erase(name);
 }
 
 void UIManager::ConstructUIMesh(UIData& uiData, const std::wstring& text)
 {
-	ENGINE_ASSERT_W(text.size() <= 32, "Text character count too large."); // Arbitrary choice for testing.
+	ENGINE_ASSERT(text.size() <= 32, "Text character count too large."); // Arbitrary choice for testing.
 
 	// Construct a plane out of six vertices for each character we wish to render.
 	for (byte i = 0; i < text.size(); ++i)
@@ -139,8 +139,8 @@ UIManager::CharacterTextureBox UIManager::ConstructCharacterBox(wchar_t characte
 #pragma warning(disable : 4996)
 	const size_t count = wcstombs(&asciiChar, &character, 1);
 #pragma warning(default : 4996)
-	ENGINE_ASSERT_W(count > 0, "Failed to convert wide character %c to ascii string.", character);
-	ENGINE_ASSERT_W(asciiChar >= 32 && asciiChar <= 126, "Text character %c out of bounds.", character);
+	ENGINE_ASSERT(count > 0, "Failed to convert wide character %c to ascii string.", character);
+	ENGINE_ASSERT(asciiChar >= 32 && asciiChar <= 126, "Text character %c out of bounds.", character);
 
 	// The dimensions of a single character on the texture atlas.
 	constexpr float CHAR_TEXTURE_WIDTH = 10.0f;

@@ -26,25 +26,12 @@
 		static CLASS& GetInstanceWrite() { return GetInstance(); } \
 	private:
 
-#define ENGINE_ASSERT_W(CONDITION, FORMAT, ...) \
+#define ENGINE_ASSERT(CONDITION, FORMAT, ...) \
 	if (!(CONDITION)) \
 	{ \
 		wchar_t buffer[1024] = { '\0' }; \
 		swprintf(buffer, ARRAYSIZE(buffer), TEXT(FORMAT), __VA_ARGS__); \
 		MessageBox(nullptr, buffer, TEXT("ERROR"), MB_OK); \
-		assert(false); \
-		exit(EXIT_FAILURE); \
-	}
-
-#define ENGINE_ASSERT_A(CONDITION, FORMAT, ...) \
-	if (!(CONDITION)) \
-	{ \
-		char buffer[1024] = { '\0' }; \
-		__pragma(warning(disable : 4996)) \
-		__pragma(warning(push)) \
-		sprintf(buffer, FORMAT, __VA_ARGS__); \
-		__pragma(warning(pop)) \
-		MessageBoxA(nullptr, buffer, "ERROR", MB_OK); \
 		assert(false); \
 		exit(EXIT_FAILURE); \
 	}
@@ -90,37 +77,6 @@
 		exit(EXIT_FAILURE); \
 	}\
 
-#define GUID_IS_ZERO(MEMBER) \
-	(MEMBER.Data1 == 0 \
-	&& MEMBER.Data2 == 0 \
-	&& MEMBER.Data3 == 0 \
-	&& MEMBER.Data4[0] == 0 \
-	&& MEMBER.Data4[1] == 0 \
-	&& MEMBER.Data4[2] == 0 \
-	&& MEMBER.Data4[3] == 0 \
-	&& MEMBER.Data4[4] == 0 \
-	&& MEMBER.Data4[5] == 0 \
-	&& MEMBER.Data4[6] == 0 \
-	&& MEMBER.Data4[7] == 0)
-
 #define ENGINE_CLAMP_F(VALUE, MIN, MAX) \
 	fmax(MIN, fmin(VALUE, MAX))
-
-#if defined(ENVIRONMENT32)
-
-#define GET_TICKS() \
-__pragma(warning(disable : 28159)) \
-__pragma(warning(push)) \
-GetTickCount() \
-__pragma(warning(pop))
-
-#elif defined(ENVIRONMENT64)
-
-#define GET_TICKS() GetTickCount64(); // In milliseconds.
-
-#else
-
-#error "Define ENVIRONMENT32 or ENVIRONMENT64."
-
-#endif
 

@@ -186,7 +186,7 @@ void Window::RegisterEngineWindowClass(_In_ HINSTANCE hInstance, _In_ LPWSTR lpC
 
 	// Attempt to register the window class and error check its creation.
 	const ATOM registerResult = RegisterClassEx(&windowClass);
-	ENGINE_ASSERT_W(registerResult != 0, "Failed to register window class!");
+	ENGINE_ASSERT(registerResult != 0, "Failed to register window class!");
 }
 
 void Window::CreateEngineWindow(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
@@ -209,7 +209,7 @@ void Window::CreateEngineWindow(_In_ HINSTANCE hInstance, _In_ LPWSTR lpCmdLine,
 	);
 
 	// Error check window creation.
-	ENGINE_ASSERT_W(m_windowHandle, "Failed to create Engine window.\n");
+	ENGINE_ASSERT(m_windowHandle, "Failed to create Engine window.\n");
 }
 
 void Window::CalculateWindowDimensions()
@@ -334,7 +334,7 @@ void Engine::InitializePerformanceFrequency()
 {
 	// Get the performance counter frequency.
 	const BOOL queryPerformanceFrequencyResult = QueryPerformanceFrequency(&m_performanceCounterFrequency);
-	ENGINE_ASSERT_W(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
+	ENGINE_ASSERT(queryPerformanceFrequencyResult, "Failed to QueryPerformanceFrequency.");
 }
 
 void Engine::InitializeThreadAffinity()
@@ -348,7 +348,7 @@ void Engine::InitializeThreadAffinity()
 	);
 
 	// Error check main thread affinity mask setting.
-	ENGINE_ASSERT_W(setThreadAffinityMaskResult, "Failed to SetThreadAffinityMask.");
+	ENGINE_ASSERT(setThreadAffinityMaskResult, "Failed to SetThreadAffinityMask.");
 }
 
 float Engine::ComputeDeltaTime()
@@ -356,7 +356,7 @@ float Engine::ComputeDeltaTime()
 	// Get the performance counter value for the current frame.
 	LARGE_INTEGER currentPerformanceCounter = { };
 	const BOOL queryPerformanceCounterResult = QueryPerformanceCounter(&currentPerformanceCounter);
-	ENGINE_ASSERT_W(queryPerformanceCounterResult, "Failed to QueryPerformanceCounter.");
+	ENGINE_ASSERT(queryPerformanceCounterResult, "Failed to QueryPerformanceCounter.");
 
 	// Calculate the delta time.
 	const float deltaTime =
@@ -802,8 +802,8 @@ void Renderer::DrawUI(const UIMeshData* meshData, const ShaderData* shaderData, 
 
 	// Draw UI.
 	m_id3d11DeviceContext->Draw(
-		meshData->Vertices.size(),		// The number of vertices to draw.
-		0								// The index of the first vertex to draw.
+		(UINT)meshData->Vertices.size(),	// The number of vertices to draw.
+		0									// The index of the first vertex to draw.
 	);
 }
 

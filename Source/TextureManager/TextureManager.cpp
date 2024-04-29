@@ -5,7 +5,7 @@
 const TextureData& TextureManager::CreateTextureData(const std::wstring& name, const std::wstring& path)
 {
 	// Ensure there are no previous entries for a texture with the same name stored in the texture data map.
-	ENGINE_ASSERT_W(!HaveTextureData(name), "Already have an entry for texture %s from %s.", name.c_str(), path.c_str());
+	ENGINE_ASSERT(!HaveTextureData(name), "Already have an entry for texture %s from %s.", name.c_str(), path.c_str());
 
 	// Create a new instance of the texture data struct inside the texture data map.
 	TextureData& textureData = m_textureDataMap[name];
@@ -31,7 +31,7 @@ const TextureData& TextureManager::GetTextureDataRead(const std::wstring& name) 
 {
 	// Attempt to search for an entry with a matching name key.
 	const auto constIterator = m_textureDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_textureDataMap.cend(), "Do not have an entry for texture %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_textureDataMap.cend(), "Do not have an entry for texture %s.", name.c_str());
 	return constIterator->second;
 }
 
@@ -39,6 +39,6 @@ void TextureManager::DeleteTextureData(const std::wstring& name)
 {
 	// Attempt to search for an entry with a matching name key.
 	const auto constIterator = m_textureDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_textureDataMap.cend(), "Do not have an entry for texture %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_textureDataMap.cend(), "Do not have an entry for texture %s.", name.c_str());
 	m_textureDataMap.erase(constIterator);
 }

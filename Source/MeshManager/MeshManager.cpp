@@ -5,7 +5,7 @@
 const MeshData& MeshManager::CreateMeshData(const std::wstring& name, const std::wstring& path, bool isOpenGLMesh /*= false*/)
 {
 	// Ensure there are no previous entries for a mesh with the same name stored in the mesh data map.
-	ENGINE_ASSERT_W(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name.c_str());
+	ENGINE_ASSERT(m_meshDataMap.find(name) == m_meshDataMap.cend(), "Mesh with name %s already exists.", name.c_str());
 
 	// Load the mesh and get an instance of the mesh data struct from the map.
 	std::unique_ptr<Mesh> mesh = LoadMesh(path, isOpenGLMesh);
@@ -46,7 +46,7 @@ const MeshData& MeshManager::GetMeshDataRead(const std::wstring& name) const
 {
 	// Attempt to search for an entry with a matching name key, and if found return it.
 	const auto constIterator = m_meshDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
 	return constIterator->second;
 }
 
@@ -54,7 +54,7 @@ void MeshManager::DeleteMeshData(const std::wstring& name)
 {
 	// Attempt to search for an entry with a matching name key, and if found erase it.
 	const auto constIterator = m_meshDataMap.find(name);
-	ENGINE_ASSERT_W(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
+	ENGINE_ASSERT(constIterator != m_meshDataMap.cend(), "Do not have an entry for mesh %s.", name.c_str());
 	m_meshDataMap.erase(constIterator);
 }
 
@@ -63,7 +63,7 @@ std::unique_ptr<Mesh> MeshManager::LoadMesh(const std::wstring& path, bool isOpe
 	// Attempt to load the mesh.
 	std::unique_ptr<Mesh> mesh(new Mesh());
 	mesh->Load(path.c_str(), false);
-	ENGINE_ASSERT_W(!mesh->vertices.empty(), "Failed to load mesh from %s.", path.c_str());
+	ENGINE_ASSERT(!mesh->vertices.empty(), "Failed to load mesh from %s.", path.c_str());
 
 	// Generate mesh normals if they are missing.
 	if (!mesh->hasNormals)

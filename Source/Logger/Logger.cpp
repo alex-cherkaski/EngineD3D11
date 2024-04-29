@@ -24,7 +24,7 @@ void Logger::InitializeCriticalSection()
 	);
 
 	// Error check critical section initialization.
-	ENGINE_ASSERT_W(initializeResult > 0, "Failed to initialize logger ciritical section.");
+	ENGINE_ASSERT(initializeResult > 0, "Failed to initialize logger ciritical section.");
 }
 
 void Logger::InitializeLogFile()
@@ -32,7 +32,7 @@ void Logger::InitializeLogFile()
 	// Retrieve the current working directory.
 	wchar_t buffer[MAX_PATH] = { TEXT('\0') };
 	const DWORD charactersRead = GetCurrentDirectory(ARRAYSIZE(buffer), buffer);
-	ENGINE_ASSERT_W(charactersRead > 0, "Failed to find current directory for log file.\n");
+	ENGINE_ASSERT(charactersRead > 0, "Failed to find current directory for log file.\n");
 	m_logFilePath += buffer;
 	m_logFilePath += TEXT("\\Log");
 
@@ -97,7 +97,7 @@ void Logger::Log(Logger::LogType type, const char* format, ...)
 	);
 
 	// Check for errors when creating the log file.
-	ENGINE_ASSERT_W(logFile, "Failed to open engine log file.\n");
+	ENGINE_ASSERT(logFile, "Failed to open engine log file.\n");
 
 	// Attempt to write to the log file.
 	DWORD bytesWritten = 0;
@@ -110,7 +110,7 @@ void Logger::Log(Logger::LogType type, const char* format, ...)
 	);
 
 	// Error check log file write.
-	ENGINE_ASSERT_W(bytesWritten == finalBuffer.length(), "Failed to write to engine log file.");
+	ENGINE_ASSERT(bytesWritten == finalBuffer.length(), "Failed to write to engine log file.");
 
 	// Close the file handle.
 	CloseHandle(logFile);
