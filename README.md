@@ -16,5 +16,14 @@ A simple, minimal, entity-component based engine/framework aimed at learning and
 - A cache aware entity component system.
 - A flexible  event/message passing system.
 
-## Building
+## Building The Project
 The solution is self contained. Simply download the entire project, open the solution file, and run in the debugger. Change scenes in SceneManager::Initialize.
+
+## Scene Camera Controls
+| Action         |  Gamepad         | Mouse and Keyboard   |
+| :---           | :---             | :---                 |
+| **Move**       | Left Thumbstick  | WASD                 |
+| **Pan Around** | Right Thumbstick | Left Mouse Botton    |
+| **Zoom In**    | Right Trigger    | Mouse Wheel Forward  |
+| **Zoom Out**   | Left Trigger     | Mouse Wheel Backward |
+| **Close**      | N/A              | ESC                  |
