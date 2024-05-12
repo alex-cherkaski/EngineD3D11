@@ -1,6 +1,6 @@
 # Engine
 ![Lighting GIF](https://github.com/alex-cherkaski/EngineD3D11/blob/master/GitHub_Media_Files/Lighting.gif)
-![Texture GIF](https://github.com/alex-cherkaski/EngineD3D11/blob/master/GitHub_Media_Files/Texture.gif)
+![Texture GIF](https://github.com/alex-cherkaski/EngineD3D11/blob/master/GitHub_Media_Files/Texturing.gif)
 
 ## About
 A simple, minimal, entity-component based engine/framework aimed at learning and experiment with different concept in real time 3D programming. Current feature list includes:
